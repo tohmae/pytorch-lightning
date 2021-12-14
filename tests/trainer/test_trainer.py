@@ -663,7 +663,7 @@ def test_benchmark_option(tmpdir):
 def test_tested_checkpoint_path(tmpdir, ckpt_path, save_top_k, fn):
     class TestModel(BoringModel):
         def validation_step(self, batch, batch_idx):
-            self.log("foo", -batch_idx)
+            self.log("foo", -float(batch_idx))
             return super().validation_step(batch, batch_idx)
 
         def test_step(self, *args):
@@ -1334,7 +1334,7 @@ def test_trainer_setup_call(tmpdir, stage):
 def test_log_every_n_steps(log_metrics_mock, tmpdir, train_batches, max_steps, log_interval):
     class TestModel(BoringModel):
         def training_step(self, *args, **kwargs):
-            self.log("foo", -1)
+            self.log("foo", -1.0)
             return super().training_step(*args, **kwargs)
 
     model = TestModel()
