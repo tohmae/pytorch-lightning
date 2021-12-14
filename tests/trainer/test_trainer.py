@@ -114,7 +114,7 @@ def test_no_val_module(monkeypatch, tmpdir, tmpdir_server, url_ckpt):
 def test_strict_model_load(monkeypatch, tmpdir, tmpdir_server, url_ckpt):
     """Tests use case where trainer saves the model, and user loads it from tags independently."""
     # set $TORCH_HOME, which determines torch hub's cache path, to tmpdir
-    monkeypatch.setenv("TORCH_HOME", tmpdir)
+    monkeypatch.setenv("TORCH_HOME", str(tmpdir))
 
     model = BoringModel()
     # Extra layer
@@ -404,7 +404,7 @@ def test_model_freeze_unfreeze():
 def test_fit_ckpt_path_epoch_restored(monkeypatch, tmpdir, tmpdir_server, url_ckpt):
     """Verify resuming from checkpoint runs the right number of epochs."""
     # set $TORCH_HOME, which determines torch hub's cache path, to tmpdir
-    monkeypatch.setenv("TORCH_HOME", tmpdir)
+    monkeypatch.setenv("TORCH_HOME", str(tmpdir))
 
     class TestModel(BoringModel):
         # Model that tracks epochs and batches seen
@@ -1350,7 +1350,7 @@ def test_log_every_n_steps(log_metrics_mock, tmpdir, train_batches, max_steps, l
     log_metrics_mock.assert_has_calls(expected_calls)
 
 
-class TestLightningDataModule(LightningDataModule):
+class MyLightningDataModule(LightningDataModule):
     def __init__(self, dataloaders):
         super().__init__()
         self._dataloaders = dataloaders
@@ -1406,7 +1406,7 @@ def predict(
     dataloaders = [torch.utils.data.DataLoader(RandomDataset(32, 2)), torch.utils.data.DataLoader(RandomDataset(32, 2))]
 
     model = model or BoringModel()
-    dm = TestLightningDataModule(dataloaders)
+    dm = MyLightningDataModule(dataloaders)
 
     cb = CustomPredictionWriter(tmpdir, write_interval="batch")
     cb_1 = CustomPredictionWriter(tmpdir, write_interval="epoch")
@@ -1840,7 +1840,7 @@ def test_model_in_correct_mode_during_stages(tmpdir, strategy, num_processes):
     trainer.predict(model, model.val_dataloader())
 
 
-class TestDummyModelForCheckpoint(BoringModel):
+class DummyModelForCheckpoint(BoringModel):
     def validation_step(self, batch, batch_idx):
         output = self.layer(batch)
         loss = self.loss(batch, output)
@@ -1854,7 +1854,7 @@ class TestDummyModelForCheckpoint(BoringModel):
 def test_fit_test_synchronization(tmpdir):
     """Test that the trainer synchronizes processes before returning control back to the caller."""
     tutils.set_random_main_port()
-    model = TestDummyModelForCheckpoint()
+    model = DummyModelForCheckpoint()
     checkpoint = ModelCheckpoint(dirpath=tmpdir, monitor="x", mode="min", save_top_k=1)
     trainer = Trainer(
         default_root_dir=tmpdir, max_epochs=2, strategy="ddp_spawn", num_processes=2, callbacks=[checkpoint]
