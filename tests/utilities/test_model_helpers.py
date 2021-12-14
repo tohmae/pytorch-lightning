@@ -32,7 +32,7 @@ def test_is_overridden():
     assert not is_overridden("whatever", model)
     assert not is_overridden("whatever", model, parent=LightningDataModule)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def foo(self):
             pass
 
@@ -40,13 +40,13 @@ def test_is_overridden():
             return 1
 
     with pytest.raises(ValueError, match="The parent should define the method"):
-        is_overridden("foo", TestModel())
+        is_overridden("foo", MyModel())
 
     # normal usage
     assert is_overridden("training_step", model)
     assert is_overridden("train_dataloader", datamodule)
 
-    class WrappedModel(TestModel):
+    class WrappedModel(MyModel):
         def __new__(cls, *args, **kwargs):
             obj = super().__new__(cls)
             obj.foo = cls.wrap(obj.foo)
@@ -65,8 +65,8 @@ def test_is_overridden():
             return 2
 
     # `functools.wraps()` support
-    assert not is_overridden("foo", WrappedModel(), parent=TestModel)
-    assert is_overridden("bar", WrappedModel(), parent=TestModel)
+    assert not is_overridden("foo", WrappedModel(), parent=MyModel)
+    assert is_overridden("bar", WrappedModel(), parent=MyModel)
 
     # `Mock` support
     mock = Mock(spec=BoringModel, wraps=model)

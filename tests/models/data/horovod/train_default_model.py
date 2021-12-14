@@ -52,7 +52,7 @@ def run_test_from_config(trainer_options, on_gpu, check_size=True):
     ckpt_path = trainer_options["weights_save_path"]
     trainer_options.update(callbacks=[ModelCheckpoint(dirpath=ckpt_path)])
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_train_start(self) -> None:
             expected_device = torch.device("cuda", self.trainer.local_rank) if on_gpu else torch.device("cpu")
             assert self.device == expected_device
@@ -61,7 +61,7 @@ def run_test_from_config(trainer_options, on_gpu, check_size=True):
             res = self.trainer.training_type_plugin.reduce(torch.tensor(1.0, device=self.device), reduce_op="sum")
             assert res.sum() == self.trainer.training_type_plugin.world_size
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(**trainer_options)
 
     trainer.fit(model)

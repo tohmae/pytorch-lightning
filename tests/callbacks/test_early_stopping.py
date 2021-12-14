@@ -456,13 +456,13 @@ def test_multiple_early_stopping_callbacks(
     }.items(),
 )
 def test_check_on_train_epoch_end_smart_handling(tmpdir, case):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def validation_step(self, batch, batch_idx):
             self.log("foo", 1)
             return super().validation_step(batch, batch_idx)
 
     case, kwargs = case
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         limit_val_batches=1,

@@ -43,7 +43,7 @@ class RandomDatasetB(Dataset):
 
 
 def test_multiple_eval_dataloaders_tuple(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def validation_step(self, batch, batch_idx, dataloader_idx):
             if dataloader_idx == 0:
                 assert batch.sum() == 0
@@ -61,7 +61,7 @@ def test_multiple_eval_dataloaders_tuple(tmpdir):
             dl2 = torch.utils.data.DataLoader(RandomDatasetB(32, 64), batch_size=11)
             return [dl1, dl2]
 
-    model = TestModel()
+    model = MyModel()
     model.validation_epoch_end = None
 
     trainer = Trainer(
@@ -77,7 +77,7 @@ def test_multiple_eval_dataloaders_tuple(tmpdir):
 
 
 def test_multiple_eval_dataloaders_list(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def validation_step(self, batch, batch_idx, dataloader_idx):
             if dataloader_idx == 0:
                 assert batch.sum() == 0
@@ -91,7 +91,7 @@ def test_multiple_eval_dataloaders_list(tmpdir):
             dl2 = torch.utils.data.DataLoader(RandomDatasetB(32, 64), batch_size=11)
             return dl1, dl2
 
-    model = TestModel()
+    model = MyModel()
     model.validation_epoch_end = None
 
     trainer = Trainer(
@@ -109,7 +109,7 @@ def test_multiple_eval_dataloaders_list(tmpdir):
 def test_multiple_optimizers_multiple_dataloaders(tmpdir):
     """Tests that only training_step can be used."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_train_epoch_start(self) -> None:
             self.opt_0_seen = False
             self.opt_1_seen = False
@@ -148,7 +148,7 @@ def test_multiple_optimizers_multiple_dataloaders(tmpdir):
             optimizer_2 = torch.optim.SGD(self.layer.parameters(), lr=0.1)
             return optimizer, optimizer_2
 
-    model = TestModel()
+    model = MyModel()
     model.validation_epoch_end = None
 
     trainer = Trainer(

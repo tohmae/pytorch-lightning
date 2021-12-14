@@ -332,7 +332,7 @@ def test_loop_state_on_exception(accumulate_grad_batches, stop_epoch, stop_batch
     n_epochs = 3
     n_batches = 3
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             if n_optimizers > 1:
@@ -353,7 +353,7 @@ def test_loop_state_on_exception(accumulate_grad_batches, stop_epoch, stop_batch
 
             return optimizers, lr_schedulers
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
 
     trainer = Trainer(
@@ -530,7 +530,7 @@ def test_loop_state_on_complete_run(n_optimizers, tmpdir):
     n_batches = 3
     accumulate_grad_batches = 1
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             if n_optimizers > 1:
@@ -553,7 +553,7 @@ def test_loop_state_on_complete_run(n_optimizers, tmpdir):
             # override to test the `is_last_batch` value
             return DataLoader(RandomDataset(32, n_batches))
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
 
     trainer = Trainer(
@@ -758,7 +758,7 @@ def test_fit_can_fail_during_validation(train_datasets, val_datasets, val_check_
     n_val_dataloaders = len(val_datasets)
     stop_dataloader = n_val_dataloaders - 1
 
-    class TestModel(LightningModule):
+    class MyModel(LightningModule):
         def __init__(self, should_fail):
             super().__init__()
             self.layer = torch.nn.Linear(size, 2)
@@ -784,7 +784,7 @@ def test_fit_can_fail_during_validation(train_datasets, val_datasets, val_check_
         def val_dataloader(self):
             return [DataLoader(cls(size, n_batches)) for cls in val_datasets]
 
-    model = TestModel(False)
+    model = MyModel(False)
     trainer = Trainer(
         default_root_dir=tmpdir,
         max_epochs=1,
@@ -822,7 +822,7 @@ def test_fit_can_fail_during_validation(train_datasets, val_datasets, val_check_
         "is_last_batch": True,
     }
 
-    model = TestModel(True)
+    model = MyModel(True)
     trainer = Trainer(
         default_root_dir=tmpdir,
         max_epochs=1,
@@ -873,7 +873,7 @@ def test_fit_can_fail_during_validation(train_datasets, val_datasets, val_check_
         "is_last_batch": False,
     }
 
-    model = TestModel(False)
+    model = MyModel(False)
     trainer = Trainer(
         default_root_dir=tmpdir,
         max_epochs=1,

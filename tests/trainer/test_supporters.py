@@ -197,7 +197,7 @@ def test_combined_loader_sequence_min_size():
     assert idx == len(combined_loader) - 1
 
 
-class TestIterableDataset(IterableDataset):
+class MyIterableDataset(IterableDataset):
     def __init__(self, size: int = 10):
         self.size = size
 
@@ -216,12 +216,12 @@ def test_combined_loader_sequence_iterable_dataset(mode, use_multiple_dataloader
     """Test `CombinedLoader` of mode 'min_size' given sequence loaders."""
     if use_multiple_dataloaders:
         loaders = [
-            torch.utils.data.DataLoader(TestIterableDataset(10), batch_size=2),
-            torch.utils.data.DataLoader(TestIterableDataset(20), batch_size=2),
+            torch.utils.data.DataLoader(MyIterableDataset(10), batch_size=2),
+            torch.utils.data.DataLoader(MyIterableDataset(20), batch_size=2),
         ]
     else:
         loaders = [
-            torch.utils.data.DataLoader(TestIterableDataset(10), batch_size=2),
+            torch.utils.data.DataLoader(MyIterableDataset(10), batch_size=2),
         ]
 
     combined_loader = CombinedLoader(loaders, mode)

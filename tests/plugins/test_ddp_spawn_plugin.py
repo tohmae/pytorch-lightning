@@ -85,7 +85,7 @@ def test_ddp_spawn_extra_parameters(tmpdir):
     assert model.test_val == "test_val"
 
 
-class TestDDPSpawnPlugin(DDPSpawnPlugin):
+class MyDDPSpawnPlugin(DDPSpawnPlugin):
     def add_to_queue(self, trainer, queue) -> None:
         queue.put("new_test_val")
         return super().add_to_queue(trainer, queue)
@@ -99,7 +99,7 @@ class TestDDPSpawnPlugin(DDPSpawnPlugin):
 def test_ddp_spawn_add_get_queue(tmpdir):
     """Tests add_to_queue/get_from_queue with DDPSpawnPlugin."""
 
-    ddp_spawn_plugin = TestDDPSpawnPlugin()
+    ddp_spawn_plugin = MyDDPSpawnPlugin()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True, num_processes=2, strategy=ddp_spawn_plugin)
 
     val: float = 1.0

@@ -321,7 +321,7 @@ def test_lr_monitor_param_groups(tmpdir):
 
 
 def test_lr_monitor_custom_name(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             optimizer, [scheduler] = super().configure_optimizers()
             lr_scheduler = {"scheduler": scheduler, "name": "my_logging_name"}
@@ -337,12 +337,12 @@ def test_lr_monitor_custom_name(tmpdir):
         enable_progress_bar=False,
         enable_model_summary=False,
     )
-    trainer.fit(TestModel())
+    trainer.fit(MyModel())
     assert list(lr_monitor.lrs) == ["my_logging_name"]
 
 
 def test_lr_monitor_custom_pg_name(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             optimizer = torch.optim.SGD([{"params": list(self.layer.parameters()), "name": "linear"}], lr=0.1)
             lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
@@ -358,14 +358,14 @@ def test_lr_monitor_custom_pg_name(tmpdir):
         enable_progress_bar=False,
         enable_model_summary=False,
     )
-    trainer.fit(TestModel())
+    trainer.fit(MyModel())
     assert list(lr_monitor.lrs) == ["lr-SGD/linear"]
 
 
 def test_lr_monitor_duplicate_custom_pg_names(tmpdir):
     tutils.reset_seed()
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.linear_a = torch.nn.Linear(32, 16)
@@ -399,11 +399,11 @@ def test_lr_monitor_duplicate_custom_pg_names(tmpdir):
     with pytest.raises(
         MisconfigurationException, match="A single `Optimizer` cannot have multiple parameter groups with identical"
     ):
-        trainer.fit(TestModel())
+        trainer.fit(MyModel())
 
 
 def test_multiple_optimizers_basefinetuning(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.backbone = torch.nn.Sequential(
@@ -487,7 +487,7 @@ def test_multiple_optimizers_basefinetuning(tmpdir):
         enable_model_summary=False,
         enable_checkpointing=False,
     )
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
     trainer.fit(model)
 
@@ -514,7 +514,7 @@ def test_lr_monitor_multiple_param_groups_no_lr_scheduler(tmpdir):
     """Test that the `LearningRateMonitor` is able to log correct keys with multiple param groups and no
     lr_scheduler."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, lr, momentum):
             super().__init__()
             self.save_hyperparameters()
@@ -547,7 +547,7 @@ def test_lr_monitor_multiple_param_groups_no_lr_scheduler(tmpdir):
 
     lr = 1e-2
     momentum = 0.7
-    model = TestModel(lr=lr, momentum=(momentum, 0.999))
+    model = MyModel(lr=lr, momentum=(momentum, 0.999))
     trainer.fit(model)
 
     assert len(lr_monitor.lrs) == len(trainer.optimizers[0].param_groups)

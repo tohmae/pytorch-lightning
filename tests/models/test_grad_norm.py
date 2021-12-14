@@ -61,14 +61,14 @@ def test_grad_tracking(tmpdir, norm_type, rtol=5e-3):
     # rtol=5e-3 respects the 3 decimals rounding in `.grad_norms` and above
     reset_seed()
 
-    class TestModel(ModelWithManualGradTracker):
+    class MyModel(ModelWithManualGradTracker):
         logged_metrics = []
 
         def on_train_batch_end(self, *_) -> None:
             # copy so they don't get reduced
             self.logged_metrics.append(self.trainer.logged_metrics.copy())
 
-    model = TestModel(norm_type)
+    model = MyModel(norm_type)
 
     trainer = Trainer(
         default_root_dir=tmpdir,

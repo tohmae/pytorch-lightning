@@ -20,9 +20,9 @@ import torch.nn.functional as F
 from pytorch_lightning.core.lightning import LightningModule
 from tests import _PATH_DATASETS
 from tests.base.model_optimizers import ConfigureOptimizersPool
-from tests.base.model_test_dataloaders import TestDataloaderVariations
-from tests.base.model_test_epoch_ends import TestEpochEndVariations
-from tests.base.model_test_steps import TestStepVariations
+from tests.base.model_test_dataloaders import DataloaderVariations
+from tests.base.model_test_epoch_ends import EpochEndVariations
+from tests.base.model_test_steps import StepVariations
 from tests.base.model_train_dataloaders import TrainDataloaderVariations
 from tests.base.model_train_steps import TrainingStepVariations
 from tests.base.model_utilities import ModelTemplateData, ModelTemplateUtils
@@ -38,11 +38,11 @@ class EvalModelTemplate(
     TrainingStepVariations,
     ValidationStepVariations,
     ValidationEpochEndVariations,
-    TestStepVariations,
-    TestEpochEndVariations,
+    StepVariations,
+    EpochEndVariations,
     TrainDataloaderVariations,
     ValDataloaderVariations,
-    TestDataloaderVariations,
+    DataloaderVariations,
     ConfigureOptimizersPool,
     LightningModule,
 ):

@@ -78,7 +78,7 @@ def test_multiple_optimizers_manual_no_return(tmpdir, kwargs):
     apex_optimizer_patches = []
     apex_optimizer_steps = []
 
-    class TestModel(ManualOptModel):
+    class MyModel(ManualOptModel):
         def training_step(self, batch, batch_idx):
             # avoid returning a value
             super().training_step(batch, batch_idx)
@@ -107,7 +107,7 @@ def test_multiple_optimizers_manual_no_return(tmpdir, kwargs):
                 for p in apex_optimizer_patches:
                     p.stop()
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     limit_train_batches = 2
@@ -140,7 +140,7 @@ def test_multiple_optimizers_manual_no_return(tmpdir, kwargs):
 
 
 def test_multiple_optimizers_manual_return(tmpdir):
-    class TestModel(ManualOptModel):
+    class MyModel(ManualOptModel):
         def training_step(self, batch, batch_idx):
             super().training_step(batch, batch_idx)
             return {"something": "else"}
@@ -149,7 +149,7 @@ def test_multiple_optimizers_manual_return(tmpdir):
             # outputs should be an array with an entry per optimizer
             assert outputs == [{"something": "else"}, {"something": "else"}]
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     limit_train_batches = 2
@@ -168,7 +168,7 @@ def test_multiple_optimizers_manual_return(tmpdir):
 
 
 def test_multiple_optimizers_manual_log(tmpdir):
-    class TestModel(ManualOptModel):
+    class MyModel(ManualOptModel):
         def training_step(self, batch, batch_idx):
             loss_2 = super().training_step(batch, batch_idx)
             self.log("a", loss_2, on_epoch=True)
@@ -176,7 +176,7 @@ def test_multiple_optimizers_manual_log(tmpdir):
         def training_epoch_end(self, outputs) -> None:
             assert not outputs
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     limit_train_batches = 2
@@ -392,7 +392,7 @@ def test_manual_optimization_and_accumulated_gradient(tmpdir):
 def test_multiple_optimizers_step(tmpdir):
     """Tests that `step` works with several optimizers."""
 
-    class TestModel(ManualOptModel):
+    class MyModel(ManualOptModel):
         def training_step(self, batch, batch_idx):
             opt_a, opt_b = self.optimizers()
             x = batch[0]
@@ -453,7 +453,7 @@ def test_multiple_optimizers_step(tmpdir):
             self.check_grads_unscaled()
             assert len(grad_norm_dict)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     limit_train_batches = 2
@@ -478,7 +478,7 @@ def test_multiple_optimizers_step(tmpdir):
 def test_step_with_optimizer_closure(tmpdir):
     """Tests that `step` works with optimizer_closure."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
 
         _losses = []
 
@@ -527,7 +527,7 @@ def test_step_with_optimizer_closure(tmpdir):
         def configure_optimizers(self):
             return torch.optim.SGD(self.layer.parameters(), lr=0.1)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
     model.training_epoch_end = None
 
@@ -550,7 +550,7 @@ def test_step_with_optimizer_closure(tmpdir):
 def test_step_with_optimizer_closure_and_accumulated_grad(tmpdir):
     """Tests that `step` works with optimizer_closure and accumulated_grad."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -583,7 +583,7 @@ def test_step_with_optimizer_closure_and_accumulated_grad(tmpdir):
         def configure_optimizers(self):
             return torch.optim.SGD(self.layer.parameters(), lr=0.1)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
     model.training_epoch_end = None
 
@@ -605,7 +605,7 @@ def test_step_with_optimizer_closure_and_accumulated_grad(tmpdir):
 def test_step_with_optimizer_closure_and_extra_arguments(step_mock, tmpdir):
     """Tests that `step` works with optimizer_closure and extra arguments."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -634,7 +634,7 @@ def test_step_with_optimizer_closure_and_extra_arguments(step_mock, tmpdir):
         def configure_optimizers(self):
             return torch.optim.SGD(self.layer.parameters(), lr=0.1)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
     model.training_epoch_end = None
 
@@ -656,7 +656,7 @@ def test_step_with_optimizer_closure_and_extra_arguments(step_mock, tmpdir):
 def test_step_with_optimizer_closure_with_different_frequencies(mock_sgd_step, mock_adam_step, tmpdir):
     """Tests that `step` works with optimizer_closure and different accumulated_gradient frequency."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -708,7 +708,7 @@ def test_step_with_optimizer_closure_with_different_frequencies(mock_sgd_step, m
             optimizer_dis = torch.optim.Adam(self.layer.parameters(), lr=0.001)
             return [optimizer_gen, optimizer_dis]
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
     model.training_epoch_end = None
 
@@ -726,7 +726,7 @@ def test_step_with_optimizer_closure_with_different_frequencies(mock_sgd_step, m
     assert mock_adam_step.mock_calls == [call(closure=ANY) for _ in range(2)]
 
 
-class TesManualOptimizationDDPModel(BoringModel):
+class ManualOptimizationDDPModel(BoringModel):
     def __init__(self):
         super().__init__()
         self.automatic_optimization = False
@@ -814,7 +814,7 @@ class TesManualOptimizationDDPModel(BoringModel):
         assert self.adam_step_mock.call_count == 2
 
 
-def train_manual_optimization(tmpdir, strategy, model_cls=TesManualOptimizationDDPModel):
+def train_manual_optimization(tmpdir, strategy, model_cls=ManualOptimizationDDPModel):
 
     seed_everything(42)
 
@@ -854,7 +854,7 @@ def test_step_with_optimizer_closure_with_different_frequencies_ddp_spawn(tmpdir
     train_manual_optimization(tmpdir, "ddp_spawn")
 
 
-class TestManualOptimizationDDPModelToggleModel(TesManualOptimizationDDPModel):
+class ManualOptimizationDDPModelToggleModel(ManualOptimizationDDPModel):
     def training_step(self, batch, batch_idx):
 
         # emulate gans training
@@ -912,13 +912,13 @@ class TestManualOptimizationDDPModelToggleModel(TesManualOptimizationDDPModel):
 
 @RunIf(min_gpus=2, standalone=True)
 def test_step_with_optimizer_closure_with_different_frequencies_ddp_with_toggle_model(tmpdir):
-    train_manual_optimization(tmpdir, "ddp", model_cls=TestManualOptimizationDDPModelToggleModel)
+    train_manual_optimization(tmpdir, "ddp", model_cls=ManualOptimizationDDPModelToggleModel)
 
 
 def test_lr_schedulers(tmpdir):
     """Test `lr_schedulers()` returns the same objects in the same order as `configure_optimizers()` returns."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -935,7 +935,7 @@ def test_lr_schedulers(tmpdir):
             self.scheduler_2 = torch.optim.lr_scheduler.StepLR(optimizer_2, step_size=1)
             return [optimizer_1, optimizer_2], [self.scheduler_1, self.scheduler_2]
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
 
     trainer = Trainer(
@@ -947,7 +947,7 @@ def test_lr_schedulers(tmpdir):
 
 @pytest.mark.parametrize("scheduler_as_dict", [True, False])
 def test_lr_schedulers_reduce_lr_on_plateau(tmpdir, scheduler_as_dict):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, scheduler_as_dict):
             super().__init__()
             self.scheduler_as_dict = scheduler_as_dict
@@ -975,7 +975,7 @@ def test_lr_schedulers_reduce_lr_on_plateau(tmpdir, scheduler_as_dict):
 
             return [optimizer], [scheduler]
 
-    model = TestModel(scheduler_as_dict=scheduler_as_dict)
+    model = MyModel(scheduler_as_dict=scheduler_as_dict)
 
     trainer = Trainer(
         default_root_dir=tmpdir, max_epochs=1, limit_train_batches=1, limit_val_batches=1, limit_test_batches=1
@@ -991,7 +991,7 @@ def test_lr_schedulers_reduce_lr_on_plateau(tmpdir, scheduler_as_dict):
 def test_lr_scheduler_step_not_called(tmpdir):
     """Test `lr_scheduler.step()` is not called in manual optimization."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -1006,7 +1006,7 @@ def test_lr_scheduler_step_not_called(tmpdir):
             self.manual_backward(loss)
             opt.step()
 
-    model = TestModel()
+    model = MyModel()
     model.training_step_end = None
     model.training_epoch_end = None
 
@@ -1026,7 +1026,7 @@ def test_lr_scheduler_step_not_called(tmpdir):
 def test_multiple_optimizers_logging(precision, tmpdir):
     """Tests that metrics are properly being logged."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -1063,7 +1063,7 @@ def test_multiple_optimizers_logging(precision, tmpdir):
             optimizer_2 = torch.optim.SGD(self.layer.parameters(), lr=0.1)
             return optimizer, optimizer_2
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
     model.val_dataloader = None
 

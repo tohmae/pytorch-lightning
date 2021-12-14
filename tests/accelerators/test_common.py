@@ -57,7 +57,7 @@ def test_evaluate(tmpdir, trainer_kwargs):
 
 
 def test_model_parallel_setup_called(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.configure_sharded_model_called = False
@@ -67,7 +67,7 @@ def test_model_parallel_setup_called(tmpdir):
             self.configure_sharded_model_called = True
             self.layer = torch.nn.Linear(32, 2)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, limit_train_batches=2, limit_val_batches=2, max_epochs=1)
     trainer.fit(model)
 

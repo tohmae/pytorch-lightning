@@ -17,7 +17,7 @@ from collections import OrderedDict
 import torch
 
 
-class TestStepVariations(ABC):
+class StepVariations(ABC):
     """Houses all variations of test steps."""
 
     def test_step(self, batch, batch_idx, *args, **kwargs):

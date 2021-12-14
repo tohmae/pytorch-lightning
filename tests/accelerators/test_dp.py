@@ -99,7 +99,7 @@ def test_multi_gpu_model_dp(tmpdir):
     memory.get_memory_profile("min_max")
 
 
-class ReductionTestModel(BoringModel):
+class ReductionMyModel(BoringModel):
     def train_dataloader(self):
         return DataLoader(RandomDataset(32, 64), batch_size=2)
 
@@ -181,7 +181,7 @@ def test_dp_raise_exception_with_batch_transfer_hooks(tmpdir, monkeypatch):
 @RunIf(min_gpus=2)
 def test_dp_training_step_dict(tmpdir):
     """This test verifies that dp properly reduces dictionaries."""
-    model = ReductionTestModel()
+    model = ReductionMyModel()
     model.training_step_end = None
     model.validation_step_end = None
     model.test_step_end = None

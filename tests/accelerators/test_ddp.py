@@ -97,12 +97,12 @@ def test_torch_distributed_backend_env_variables(tmpdir):
 def test_ddp_torch_dist_is_available_in_setup(mock_set_device, mock_is_available, mock_device_count, tmpdir):
     """Test to ensure torch distributed is available within the setup hook using ddp."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def setup(self, stage: Optional[str] = None) -> None:
             assert torch.distributed.is_initialized()
             raise SystemExit()
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True, strategy="ddp", gpus=1)
     with pytest.raises(SystemExit):
         trainer.fit(model)

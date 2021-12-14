@@ -476,11 +476,11 @@ def test_default_opts(tmpdir):
 def test_multi_optimizers_fails(tmpdir):
     """Ensure if there are multiple optimizers, we throw an exception."""
 
-    class TestModel(IPUModel):
+    class MyModel(IPUModel):
         def configure_optimizers(self):
             return [torch.optim.Adam(self.parameters()), torch.optim.Adam(self.parameters())]
 
-    model = TestModel()
+    model = MyModel()
 
     trainer = Trainer(default_root_dir=tmpdir, ipus=1)
     with pytest.raises(MisconfigurationException, match="IPUs currently only support one optimizer."):

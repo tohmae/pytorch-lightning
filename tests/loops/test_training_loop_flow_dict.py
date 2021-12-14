@@ -23,7 +23,7 @@ from tests.helpers.deterministic_model import DeterministicModel
 def test__training_step__flow_dict(tmpdir):
     """Tests that only training_step can be used."""
 
-    class TestModel(DeterministicModel):
+    class MyModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -33,7 +33,7 @@ def test__training_step__flow_dict(tmpdir):
         def backward(self, loss, optimizer, optimizer_idx):
             return LightningModule.backward(self, loss, optimizer, optimizer_idx)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -55,7 +55,7 @@ def test__training_step__flow_dict(tmpdir):
 def test__training_step__tr_step_end__flow_dict(tmpdir):
     """Tests that only training_step can be used."""
 
-    class TestModel(DeterministicModel):
+    class MyModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -72,7 +72,7 @@ def test__training_step__tr_step_end__flow_dict(tmpdir):
         def backward(self, loss, optimizer, optimizer_idx):
             return LightningModule.backward(self, loss, optimizer, optimizer_idx)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -94,7 +94,7 @@ def test__training_step__tr_step_end__flow_dict(tmpdir):
 def test__training_step__epoch_end__flow_dict(tmpdir):
     """Tests that only training_step can be used."""
 
-    class TestModel(DeterministicModel):
+    class MyModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -119,7 +119,7 @@ def test__training_step__epoch_end__flow_dict(tmpdir):
         def backward(self, loss, optimizer, optimizer_idx):
             return LightningModule.backward(self, loss, optimizer, optimizer_idx)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -141,7 +141,7 @@ def test__training_step__epoch_end__flow_dict(tmpdir):
 def test__training_step__step_end__epoch_end__flow_dict(tmpdir):
     """Tests that only training_step can be used."""
 
-    class TestModel(DeterministicModel):
+    class MyModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -172,7 +172,7 @@ def test__training_step__step_end__epoch_end__flow_dict(tmpdir):
         def backward(self, loss, optimizer, optimizer_idx):
             return LightningModule.backward(self, loss, optimizer, optimizer_idx)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(

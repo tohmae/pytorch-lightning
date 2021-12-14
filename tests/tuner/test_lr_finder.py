@@ -210,12 +210,12 @@ def test_accumulation_and_early_stopping(tmpdir):
     feature."""
     seed_everything(1)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.lr = 1e-3
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, accumulate_grad_batches=2)
     lrfinder = trainer.tuner.lr_find(model, early_stop_threshold=None)
 
@@ -310,12 +310,12 @@ def test_lr_candidates_between_min_and_max(tmpdir):
     """Test that learning rate candidates are between min_lr and max_lr."""
     seed_everything(1)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, learning_rate=0.1):
             super().__init__()
             self.save_hyperparameters()
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir)
 
     lr_min = 1e-8
@@ -328,7 +328,7 @@ def test_lr_candidates_between_min_and_max(tmpdir):
 def test_lr_finder_ends_before_num_training(tmpdir):
     """Tests learning rate finder ends before `num_training` steps."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, learning_rate=0.1):
             super().__init__()
             self.save_hyperparameters()
@@ -337,7 +337,7 @@ def test_lr_finder_ends_before_num_training(tmpdir):
             assert self.global_step < num_training
             return outputs
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir)
     num_training = 3
     trainer.tuner.lr_find(model=model, num_training=num_training)

@@ -19,7 +19,7 @@ from pytorch_lightning.loggers import LoggerCollection, TensorBoardLogger
 from tests.helpers.boring_model import BoringModel
 
 
-class TestModel(BoringModel):
+class MyModel(BoringModel):
     def __init__(self, expected_log_dir):
         super().__init__()
         self.expected_log_dir = expected_log_dir
@@ -33,7 +33,7 @@ def test_logdir(tmpdir):
     """Tests that the path is correct when checkpoint and loggers are used."""
     expected = os.path.join(tmpdir, "lightning_logs", "version_0")
 
-    model = TestModel(expected)
+    model = MyModel(expected)
 
     trainer = Trainer(default_root_dir=tmpdir, max_steps=2, callbacks=[ModelCheckpoint(dirpath=tmpdir)])
 
@@ -45,7 +45,7 @@ def test_logdir(tmpdir):
 def test_logdir_no_checkpoint_cb(tmpdir):
     """Tests that the path is correct with no checkpoint."""
     expected = os.path.join(tmpdir, "lightning_logs", "version_0")
-    model = TestModel(expected)
+    model = MyModel(expected)
 
     trainer = Trainer(default_root_dir=tmpdir, max_steps=2, enable_checkpointing=False)
 
@@ -57,7 +57,7 @@ def test_logdir_no_checkpoint_cb(tmpdir):
 def test_logdir_no_logger(tmpdir):
     """Tests that the path is correct even when there is no logger."""
     expected = os.path.join(tmpdir)
-    model = TestModel(expected)
+    model = MyModel(expected)
 
     trainer = Trainer(default_root_dir=tmpdir, max_steps=2, logger=False, callbacks=[ModelCheckpoint(dirpath=tmpdir)])
 
@@ -69,7 +69,7 @@ def test_logdir_no_logger(tmpdir):
 def test_logdir_no_logger_no_checkpoint(tmpdir):
     """Tests that the path is correct even when there is no logger."""
     expected = os.path.join(tmpdir)
-    model = TestModel(expected)
+    model = MyModel(expected)
 
     trainer = Trainer(default_root_dir=tmpdir, max_steps=2, logger=False, enable_checkpointing=False)
 
@@ -81,7 +81,7 @@ def test_logdir_no_logger_no_checkpoint(tmpdir):
 def test_logdir_custom_callback(tmpdir):
     """Tests that the path is correct even when there is a custom callback."""
     expected = os.path.join(tmpdir, "lightning_logs", "version_0")
-    model = TestModel(expected)
+    model = MyModel(expected)
 
     trainer = Trainer(
         default_root_dir=tmpdir, max_steps=2, callbacks=[ModelCheckpoint(dirpath=os.path.join(tmpdir, "ckpts"))]
@@ -95,7 +95,7 @@ def test_logdir_custom_callback(tmpdir):
 def test_logdir_custom_logger(tmpdir):
     """Tests that the path is correct even when there is a custom logger."""
     expected = os.path.join(tmpdir, "custom_logs", "version_0")
-    model = TestModel(expected)
+    model = MyModel(expected)
 
     trainer = Trainer(
         default_root_dir=tmpdir,
@@ -113,7 +113,7 @@ def test_logdir_logger_collection(tmpdir):
     """Tests that the logdir equals the default_root_dir when the logger is a LoggerCollection."""
     default_root_dir = tmpdir / "default_root_dir"
     save_dir = tmpdir / "save_dir"
-    model = TestModel(default_root_dir)
+    model = MyModel(default_root_dir)
     trainer = Trainer(
         default_root_dir=default_root_dir,
         max_steps=2,

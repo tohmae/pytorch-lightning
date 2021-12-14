@@ -29,7 +29,7 @@ class MultiOptModel(BoringModel):
 def test_unbalanced_logging_with_multiple_optimizers(tmpdir):
     """This tests ensures reduction works in unbalanced logging settings."""
 
-    class TestModel(MultiOptModel):
+    class MyModel(MultiOptModel):
 
         actual = {0: [], 1: []}
 
@@ -40,7 +40,7 @@ def test_unbalanced_logging_with_multiple_optimizers(tmpdir):
             self.actual[optimizer_idx].append(loss)
             return out
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
 
     # Initialize a trainer
@@ -56,7 +56,7 @@ def test_unbalanced_logging_with_multiple_optimizers(tmpdir):
 
 
 def test_multiple_optimizers(tmpdir):
-    class TestModel(MultiOptModel):
+    class MyModel(MultiOptModel):
 
         seen = [False, False]
 
@@ -68,7 +68,7 @@ def test_multiple_optimizers(tmpdir):
             # outputs should be an array with an entry per optimizer
             assert len(outputs) == 2
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = pl.Trainer(
@@ -85,7 +85,7 @@ def test_multiple_optimizers(tmpdir):
 
 
 def test_multiple_optimizers_manual(tmpdir):
-    class TestModel(MultiOptModel):
+    class MyModel(MultiOptModel):
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -113,7 +113,7 @@ def test_multiple_optimizers_manual(tmpdir):
             # and it is not automatic optimization
             assert len(outputs) == 0
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = pl.Trainer(
@@ -128,21 +128,21 @@ def test_multiple_optimizers_no_opt_idx_argument(tmpdir):
     """Test that an error is raised if no optimizer_idx is present when multiple optimizeres are passed in case of
     automatic_optimization."""
 
-    class TestModel(MultiOptModel):
+    class MyModel(MultiOptModel):
         def training_step(self, batch, batch_idx):
             return super().training_step(batch, batch_idx)
 
     trainer = pl.Trainer(default_root_dir=tmpdir, fast_dev_run=2)
 
     with pytest.raises(ValueError, match="`training_step` is missing the `optimizer_idx`"):
-        trainer.fit(TestModel())
+        trainer.fit(MyModel())
 
 
 def test_custom_optimizer_step_with_multiple_optimizers(tmpdir):
     """This tests ensures custom optimizer_step works, even when optimizer.step is not called for a particular
     optimizer."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         training_step_called = [0, 0]
         optimizer_step_called = [0, 0]
 
@@ -180,7 +180,7 @@ def test_custom_optimizer_step_with_multiple_optimizers(tmpdir):
                 else:
                     optimizer_closure()
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     limit_train_batches = 4

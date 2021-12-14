@@ -291,7 +291,7 @@ def test_epoch_results_cache_dp(tmpdir):
 
     root_device = torch.device("cuda", 0)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, *args, **kwargs):
             result = super().training_step(*args, **kwargs)
             self.log("train_loss_epoch", result["loss"], on_step=False, on_epoch=True)
@@ -332,7 +332,7 @@ def test_epoch_results_cache_dp(tmpdir):
         def test_dataloader(self):
             return DataLoader(RandomDataset(32, 64), batch_size=4)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir, strategy="dp", gpus=2, limit_train_batches=2, limit_val_batches=2, max_epochs=1
     )
@@ -346,7 +346,7 @@ def test_can_return_tensor_with_more_than_one_element(tmpdir):
     #6623
     """
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def validation_step(self, batch, *args, **kwargs):
             return {"val": torch.tensor([0, 1])}
 
@@ -364,7 +364,7 @@ def test_can_return_tensor_with_more_than_one_element(tmpdir):
             assert all(list(d) == ["test"] for d in outputs)  # check keys
             assert all(torch.equal(d["test"], torch.tensor([0, 1])) for d in outputs)  # check values
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=2, enable_progress_bar=False)
     trainer.fit(model)
     trainer.validate(model)
@@ -374,13 +374,13 @@ def test_can_return_tensor_with_more_than_one_element(tmpdir):
 def test_logging_to_progress_bar_with_reserved_key(tmpdir):
     """Test that logging a metric with a reserved name to the progress bar raises a warning."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, *args, **kwargs):
             output = super().training_step(*args, **kwargs)
             self.log("loss", output["loss"], prog_bar=True)
             return output
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True)
     with pytest.warns(UserWarning, match="The progress bar already tracks a metric with the .* 'loss'"):
         trainer.fit(model)
@@ -390,7 +390,7 @@ def test_logging_to_progress_bar_with_reserved_key(tmpdir):
 def test_auto_add_dataloader_idx(tmpdir, add_dataloader_idx):
     """test that auto_add_dataloader_idx argument works."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def val_dataloader(self):
             dl = super().val_dataloader()
             return [dl, dl]
@@ -405,7 +405,7 @@ def test_auto_add_dataloader_idx(tmpdir, add_dataloader_idx):
             self.log(name, output["x"], add_dataloader_idx=add_dataloader_idx)
             return output
 
-    model = TestModel()
+    model = MyModel()
     model.validation_epoch_end = None
 
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=2)
@@ -424,7 +424,7 @@ def test_auto_add_dataloader_idx(tmpdir, add_dataloader_idx):
 def test_metrics_reset(tmpdir):
     """Tests that metrics are reset correctly after the end of the train/val/test epoch."""
 
-    class TestModel(LightningModule):
+    class MyModel(LightningModule):
         def __init__(self):
             super().__init__()
             self.layer = torch.nn.Linear(32, 1)
@@ -507,7 +507,7 @@ def test_metrics_reset(tmpdir):
         acc.reset.assert_called_once()
         ap.reset.assert_called_once()
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         limit_train_batches=2,
@@ -630,12 +630,12 @@ def test_result_collection_on_tensor_with_mean_reduction():
 
 
 def test_logged_metrics_has_logged_epoch_value(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             self.log("epoch", -batch_idx, logger=True)
             return super().training_step(batch, batch_idx)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=2)
     trainer.fit(model)
 

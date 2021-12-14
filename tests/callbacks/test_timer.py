@@ -27,25 +27,25 @@ from tests.helpers.runif import RunIf
 
 
 def test_trainer_flag(caplog):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_fit_start(self):
             raise SystemExit()
 
     trainer = Trainer(max_time=dict(seconds=1337))
     with pytest.raises(SystemExit):
-        trainer.fit(TestModel())
+        trainer.fit(MyModel())
     timer = [c for c in trainer.callbacks if isinstance(c, Timer)][0]
     assert timer._duration == 1337
 
     trainer = Trainer(max_time=dict(seconds=1337), callbacks=[Timer()])
     with pytest.raises(SystemExit), caplog.at_level(level=logging.INFO):
-        trainer.fit(TestModel())
+        trainer.fit(MyModel())
     assert "callbacks list already contains a Timer" in caplog.text
 
     # Make sure max_time still honored even if max_epochs == -1
     trainer = Trainer(max_time=dict(seconds=1), max_epochs=-1)
     with pytest.raises(SystemExit):
-        trainer.fit(TestModel())
+        trainer.fit(MyModel())
     timer = [c for c in trainer.callbacks if isinstance(c, Timer)][0]
     assert timer._duration == 1
     assert trainer.max_epochs == -1

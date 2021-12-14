@@ -71,13 +71,13 @@ def test_amp_apex_ddp(mocked_device_count, strategy, gpus, amp, custom_plugin, p
     assert isinstance(trainer.precision_plugin, plugin_cls)
 
 
-class TestClippingOptimizer(torch.optim.SGD):
+class ClippingOptimizer(torch.optim.SGD):
     def step(self, *args, pl_module=None):
         pl_module.check_grads_clipped()
         return super().step(*args)
 
 
-class TestPrecisionModel(BoringModel):
+class MyPrecisionModel(BoringModel):
     # sister test: tests/trainer/optimization/test_manual_optimization.py::test_multiple_optimizers_step
     def on_after_backward(self) -> None:
         # check grads are scaled
@@ -130,13 +130,13 @@ class TestPrecisionModel(BoringModel):
         optimizer.step(closure, pl_module=self)
 
     def configure_optimizers(self):
-        return TestClippingOptimizer(self.layer.parameters(), lr=0.1)
+        return ClippingOptimizer(self.layer.parameters(), lr=0.1)
 
 
 @RunIf(min_gpus=2)
 @pytest.mark.parametrize("accum", [1, 2])
 def test_amp_gradient_unscale(tmpdir, accum: int):
-    model = TestPrecisionModel()
+    model = MyPrecisionModel()
 
     trainer = Trainer(
         max_epochs=2,

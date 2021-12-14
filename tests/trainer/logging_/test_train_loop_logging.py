@@ -34,7 +34,7 @@ from tests.helpers.runif import RunIf
 def test__training_step__log(tmpdir):
     """Tests that only training_step can be used."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             out = super().training_step(batch, batch_idx)
             loss = out["loss"]
@@ -70,7 +70,7 @@ def test__training_step__log(tmpdir):
 
             return loss
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -96,7 +96,7 @@ def test__training_step__log(tmpdir):
 def test__training_step__epoch_end__log(tmpdir):
     """Tests that training_epoch_end can log."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             out = super().training_step(batch, batch_idx)
             loss = out["loss"]
@@ -108,7 +108,7 @@ def test__training_step__epoch_end__log(tmpdir):
             self.log("b1", outputs[0]["loss"])
             self.log("b", outputs[0]["loss"], on_epoch=True, prog_bar=True, logger=True)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -134,7 +134,7 @@ def test__training_step__epoch_end__log(tmpdir):
 def test__training_step__step_end__epoch_end__log(tmpdir, batches, log_interval, max_epochs):
     """Tests that training_step_end and training_epoch_end can log."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             loss = self.step(batch[0])
             self.log("a", loss, on_step=True, on_epoch=True)
@@ -148,7 +148,7 @@ def test__training_step__step_end__epoch_end__log(tmpdir, batches, log_interval,
             self.log("c", outputs[0]["loss"], on_epoch=True, prog_bar=True, logger=True)
             self.log("d/e/f", 2)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -177,7 +177,7 @@ def test__training_step__step_end__epoch_end__log(tmpdir, batches, log_interval,
 def test__training_step__log_max_reduce_fx(tmpdir, batches, fx, result):
     """Tests that log works correctly with different tensor types."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch[0])
             self.log("foo", torch.tensor(batch_idx, dtype=torch.long), on_step=False, on_epoch=True, reduce_fx=fx)
@@ -189,7 +189,7 @@ def test__training_step__log_max_reduce_fx(tmpdir, batches, fx, result):
             self.log("bar", torch.tensor(batch_idx).float(), on_step=False, on_epoch=True, reduce_fx=fx)
             return {"x": loss}
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         limit_train_batches=batches,
@@ -205,7 +205,7 @@ def test__training_step__log_max_reduce_fx(tmpdir, batches, fx, result):
 
 
 def test_different_batch_types_for_sizing(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             assert isinstance(batch, dict)
             a = batch["a"]
@@ -227,7 +227,7 @@ def test_different_batch_types_for_sizing(tmpdir):
         def val_dataloader(self):
             return torch.utils.data.DataLoader(RandomDictDataset(32, 64), batch_size=32)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         limit_train_batches=1,
@@ -307,7 +307,7 @@ def test_log_works_in_train_callback(tmpdir):
         def on_epoch_end(self, _, pl_module):
             self.make_logging(pl_module, "on_epoch_end", on_steps=[False], on_epochs=[True], prob_bars=self.choices)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         seen_losses = []
 
         def training_step(self, batch, batch_idx):
@@ -316,7 +316,7 @@ def test_log_works_in_train_callback(tmpdir):
             self.log("train_loss", loss, prog_bar=True)
             return {"loss": loss}
 
-    model = TestModel()
+    model = MyModel()
     cb = TestCallback()
     trainer = Trainer(
         default_root_dir=tmpdir,
@@ -468,7 +468,7 @@ def test_logging_sync_dist_true_ddp(tmpdir):
 
 
 def test_progress_bar_metrics_contains_values_on_train_epoch_end(tmpdir: str):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, *args):
             self.log("foo", torch.tensor(self.current_epoch), on_step=False, on_epoch=True, prog_bar=True)
             return super().training_step(*args)
@@ -502,7 +502,7 @@ def test_progress_bar_metrics_contains_values_on_train_epoch_end(tmpdir: str):
         logger=False,
         enable_model_summary=False,
     )
-    model = TestModel()
+    model = MyModel()
     trainer.fit(model)
     assert model.on_train_epoch_end_called
     assert model.on_epoch_end_called
@@ -596,37 +596,37 @@ def test_metric_are_properly_reduced(tmpdir):
     "value", [None, dict(a=None), dict(a=dict(b=None)), dict(a=dict(b=1)), "foo", [1, 2, 3], (1, 2, 3), [[1, 2], 3]]
 )
 def test_log_none_raises(tmpdir, value):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, *args):
             self.log("foo", value)
 
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=1)
-    model = TestModel()
+    model = MyModel()
     match = escape(f"self.log(foo, {value})` was called")
     with pytest.raises(ValueError, match=match):
         trainer.fit(model)
 
 
 def test_logging_raises(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             self.log("foo/dataloader_idx_0", -1)
 
     trainer = Trainer(default_root_dir=tmpdir)
-    model = TestModel()
+    model = MyModel()
     with pytest.raises(MisconfigurationException, match="`self.log` with the key `foo/dataloader_idx_0`"):
         trainer.fit(model)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             self.log("foo", Accuracy())
 
     trainer = Trainer(default_root_dir=tmpdir)
-    model = TestModel()
+    model = MyModel()
     with pytest.raises(MisconfigurationException, match="fix this by setting an attribute for the metric in your"):
         trainer.fit(model)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.bar = Accuracy()
@@ -635,37 +635,37 @@ def test_logging_raises(tmpdir):
             self.log("foo", Accuracy())
 
     trainer = Trainer(default_root_dir=tmpdir)
-    model = TestModel()
+    model = MyModel()
     with pytest.raises(
         MisconfigurationException,
         match=r"`self.log\(foo, ..., metric_attribute=name\)` where `name` is one of \['bar'\]",
     ):
         trainer.fit(model)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, *args):
             self.log("foo", -1, prog_bar=False)
             self.log("foo", -1, prog_bar=True)
             return super().training_step(*args)
 
     trainer = Trainer(default_root_dir=tmpdir)
-    model = TestModel()
+    model = MyModel()
     with pytest.raises(MisconfigurationException, match=r"self.log\(foo, ...\)` twice in `training_step`"):
         trainer.fit(model)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, *args):
             self.log("foo", -1, reduce_fx=torch.argmax)
             return super().training_step(*args)
 
     trainer = Trainer(default_root_dir=tmpdir)
-    model = TestModel()
+    model = MyModel()
     with pytest.raises(MisconfigurationException, match=r"reduce_fx={min,max,mean,sum}\)` are currently supported"):
         trainer.fit(model)
 
 
 def test_sanity_metrics_are_reset(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def validation_step(self, batch, batch_idx):
             output = super().validation_step(batch, batch_idx)
             if self.trainer.sanity_checking:
@@ -684,14 +684,14 @@ def test_sanity_metrics_are_reset(tmpdir):
     trainer = Trainer(
         default_root_dir=tmpdir, max_epochs=1, limit_train_batches=1, limit_val_batches=2, num_sanity_val_steps=2
     )
-    trainer.fit(TestModel())
+    trainer.fit(MyModel())
 
     assert "val_loss" not in trainer.progress_bar_metrics
 
 
 @RunIf(min_gpus=1)
 def test_move_metrics_to_cpu(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_before_backward(self, loss: torch.Tensor) -> None:
             assert loss.device.type == "cuda"
 
@@ -703,11 +703,11 @@ def test_move_metrics_to_cpu(tmpdir):
         move_metrics_to_cpu=True,
         gpus=1,
     )
-    trainer.fit(TestModel())
+    trainer.fit(MyModel())
 
 
 def test_on_epoch_logging_with_sum_and_on_batch_start(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_train_epoch_end(self):
             assert all(v == 3 for v in self.trainer.callback_metrics.values())
 
@@ -734,7 +734,7 @@ def test_on_epoch_logging_with_sum_and_on_batch_start(tmpdir):
             self.log("validation_epoch_end", 3.0, reduce_fx="mean")
             assert self.trainer._results["validation_epoch_end.validation_epoch_end"].value == 3.0
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         enable_progress_bar=False,
         limit_train_batches=3,

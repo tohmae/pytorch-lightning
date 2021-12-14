@@ -205,11 +205,11 @@ def test_deepspeed_defaults(tmpdir):
 
 @RunIf(min_gpus=1, deepspeed=True, standalone=True)
 def test_warn_deepspeed_ignored(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def backward(self, loss: Tensor, optimizer: Optimizer, optimizer_idx: int, *args, **kwargs) -> None:
             return loss.backward()
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         fast_dev_run=True, default_root_dir=tmpdir, strategy=DeepSpeedPlugin(), gpus=1, precision=16, track_grad_norm=2
     )
@@ -229,7 +229,7 @@ def test_warn_deepspeed_ignored(tmpdir):
 def test_deepspeed_auto_batch_size_config_select(mock_deepspeed_distributed, tmpdir, dataset_cls, value):
     """Test to ensure that the batch size is correctly set as expected for deepspeed logging purposes."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def train_dataloader(self):
             return DataLoader(dataset_cls(32, 64))
 
@@ -247,7 +247,7 @@ def test_deepspeed_auto_batch_size_config_select(mock_deepspeed_distributed, tmp
             raise SystemExit
 
     ck = AssertCallback()
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         fast_dev_run=True,
@@ -274,12 +274,12 @@ def test_deepspeed_run_configure_optimizers(tmpdir):
             # check that the lr_scheduler config was preserved
             assert trainer.lr_schedulers[0]["name"] == "Sean"
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             [optimizer], [scheduler] = super().configure_optimizers()
             return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "name": "Sean"}}
 
-    model = TestModel()
+    model = MyModel()
     lr_monitor = LearningRateMonitor()
     trainer = Trainer(
         strategy=DeepSpeedPlugin(),  # disable ZeRO so our optimizers are not wrapped
@@ -786,7 +786,7 @@ def test_deepspeed_multigpu_partial_partition_parameters(tmpdir):
     """Test to ensure that a module that defines a layer inside the ``__init__`` and ``configure_sharded_model``
     correctly converts all parameters to float16 when ``precision=16`` and runs successfully."""
 
-    class TestModel(ModelParallelBoringModel):
+    class MyModel(ModelParallelBoringModel):
         def __init__(self):
             super().__init__()
             self.layer_2 = torch.nn.Linear(32, 32)
@@ -801,7 +801,7 @@ def test_deepspeed_multigpu_partial_partition_parameters(tmpdir):
         def on_train_epoch_start(self) -> None:
             assert all([x.dtype == torch.float16 for x in self.parameters()])
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir, strategy=DeepSpeedPlugin(stage=3), gpus=1, fast_dev_run=True, precision=16
     )
@@ -813,7 +813,7 @@ def test_deepspeed_multigpu_test_rnn(tmpdir):
     """Test to ensure that turning off explicit partitioning of the entire module for ZeRO Stage 3 works when
     training with certain layers which will crash with explicit partitioning."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.rnn = torch.nn.GRU(32, 32)
@@ -821,7 +821,7 @@ def test_deepspeed_multigpu_test_rnn(tmpdir):
         def on_train_epoch_start(self) -> None:
             assert all([x.dtype == torch.float16 for x in self.parameters()])
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         strategy=DeepSpeedPlugin(stage=3, partition_module=False),
@@ -893,11 +893,11 @@ def test_deepspeed_multigpu_no_schedulers(tmpdir):
 
 @RunIf(min_gpus=1, deepspeed=True, standalone=True)
 def test_deepspeed_skip_backward_raises(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             return None
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, strategy=DeepSpeedPlugin(), gpus=1, fast_dev_run=True, precision=16)
     with pytest.raises(MisconfigurationException, match="returning `None` .* is not supported"):
         trainer.fit(model)
@@ -957,7 +957,7 @@ def test_deepspeed_scheduler_step_count_epoch(mock_step):
 
 
 def _run_scheduler_test(mock_step, max_epoch, limit_train_batches, interval):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             optimizer = torch.optim.SGD(self.layer.parameters(), lr=0.1)
             scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, gamma=0.1)
@@ -966,7 +966,7 @@ def _run_scheduler_test(mock_step, max_epoch, limit_train_batches, interval):
                 "lr_scheduler": {"scheduler": scheduler, "interval": interval},
             }
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=os.getcwd(),
         limit_train_batches=limit_train_batches,
@@ -989,12 +989,12 @@ def test_deepspeed_configure_gradient_clipping(tmpdir):
     """Test to ensure that a warning is raised when `LightningModule.configure_gradient_clipping` is overridden in
     case of deepspeed."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_gradient_clipping(self, optimizer, optimizer_idx, gradient_clip_val, gradient_clip_algorithm):
             if optimizer_idx == 0:
                 self.clip_gradients(optimizer, gradient_clip_val, gradient_clip_algorithm)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         gpus=1,

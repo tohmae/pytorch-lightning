@@ -41,11 +41,11 @@ def test_backward_count_with_grad_accumulation(torch_backward):
 def test_backward_count_with_closure(torch_backward):
     """Using a closure (e.g. with LBFGS) should lead to no extra backward calls."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             return torch.optim.LBFGS(self.parameters(), lr=0.1)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(max_steps=5)
     trainer.fit(model)
     assert torch_backward.call_count == 5

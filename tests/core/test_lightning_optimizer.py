@@ -29,7 +29,7 @@ from tests.helpers.boring_model import BoringModel
 def test_lightning_optimizer(tmpdir, auto):
     """Test that optimizer are correctly wrapped by our LightningOptimizer."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             optimizer = torch.optim.SGD(self.layer.parameters(), lr=0.1)
             if not auto:
@@ -38,7 +38,7 @@ def test_lightning_optimizer(tmpdir, auto):
             lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1)
             return [optimizer], [lr_scheduler]
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir, limit_train_batches=1, limit_val_batches=1, max_epochs=1, enable_model_summary=False
     )
@@ -54,7 +54,7 @@ def test_lightning_optimizer_manual_optimization_and_accumulated_gradients(tmpdi
     Not recommended.
     """
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -84,7 +84,7 @@ def test_lightning_optimizer_manual_optimization_and_accumulated_gradients(tmpdi
             lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_1, step_size=1)
             return [optimizer_1, optimizer_2], [lr_scheduler]
 
-    model = TestModel()
+    model = MyModel()
     model.training_step_end = None
     model.training_epoch_end = None
     trainer = Trainer(
@@ -139,7 +139,7 @@ def test_state(tmpdir):
 def test_lightning_optimizer_automatic_optimization_optimizer_zero_grad(tmpdir):
     """Test overriding zero_grad works in automatic_optimization."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx, optimizer_idx=None):
             return super().training_step(batch, batch_idx)
 
@@ -158,7 +158,7 @@ def test_lightning_optimizer_automatic_optimization_optimizer_zero_grad(tmpdir):
             lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_1, step_size=1)
             return [optimizer_1, optimizer_2], [lr_scheduler]
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir, limit_train_batches=20, limit_val_batches=1, max_epochs=1, enable_model_summary=False
     )
@@ -173,7 +173,7 @@ def test_lightning_optimizer_automatic_optimization_optimizer_zero_grad(tmpdir):
 def test_lightning_optimizer_automatic_optimization_optimizer_step(tmpdir):
     """Test overriding step works in automatic_optimization."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx, optimizer_idx=None):
             return super().training_step(batch, batch_idx)
 
@@ -196,7 +196,7 @@ def test_lightning_optimizer_automatic_optimization_optimizer_step(tmpdir):
             lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_1, step_size=1)
             return [optimizer_1, optimizer_2], [lr_scheduler]
 
-    model = TestModel()
+    model = MyModel()
 
     limit_train_batches = 8
     trainer = Trainer(
@@ -223,11 +223,11 @@ def test_lightning_optimizer_automatic_optimization_lbfgs_zero_grad(tmpdir):
     """Test zero_grad is called the same number of times as LBFGS requires for reevaluation of the loss in
     automatic_optimization."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             return torch.optim.LBFGS(self.parameters())
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir, limit_train_batches=1, limit_val_batches=1, max_epochs=1, enable_model_summary=False
     )
@@ -287,7 +287,7 @@ class OptimizerWithHooks(Optimizer):
 
 
 def test_lightning_optimizer_keeps_hooks(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         count_on_train_batch_start = 0
         count_on_train_batch_end = 0
 
@@ -305,7 +305,7 @@ def test_lightning_optimizer_keeps_hooks(tmpdir):
             gc.collect()  # not necessary, just in case
 
     trainer = Trainer(default_root_dir=tmpdir, limit_train_batches=4, limit_val_batches=1, max_epochs=1)
-    model = TestModel()
+    model = MyModel()
     trainer.fit(model)
     assert model.count_on_train_batch_start == 4
     assert model.count_on_train_batch_end == 4

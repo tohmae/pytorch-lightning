@@ -108,7 +108,7 @@ def test_memory_consumption_validation(tmpdir):
 def test_evaluation_loop_doesnt_store_outputs_if_epoch_end_not_overridden(tmpdir):
     did_assert = False
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_test_batch_end(self, outputs, *_):
             # check `test_step` returns something
             assert outputs is not None
@@ -122,7 +122,7 @@ def test_evaluation_loop_doesnt_store_outputs_if_epoch_end_not_overridden(tmpdir
             did_assert = True
             super().on_advance_end()
 
-    model = TestModel()
+    model = MyModel()
     model.test_epoch_end = None
     assert not is_overridden("test_epoch_end", model)
 

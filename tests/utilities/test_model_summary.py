@@ -348,12 +348,12 @@ def test_raise_invalid_max_depth_value(max_depth):
 def test_summary_data_output(example_input):
     """Ensure all items are converted to strings when getting summary data."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         @property
         def example_input_array(self) -> Any:
             return example_input
 
-    summary = summarize(TestModel())
+    summary = summarize(MyModel())
     summary_data = summary._get_summary_data()
     for column_name, entries in summary_data:
         assert all(isinstance(entry, str) for entry in entries)

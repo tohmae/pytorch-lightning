@@ -676,7 +676,7 @@ def test_data_loading_wraps_dataset_and_samplers(_, tmpdir, use_fault_tolerant):
 
     dataset = range(50)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def train_dataloader(self):
             return {
                 "a": [
@@ -724,7 +724,7 @@ def test_data_loading_wraps_dataset_and_samplers(_, tmpdir, use_fault_tolerant):
                 assert isinstance(loaders["b"].loader.dataset, RangeIterableDataset)
 
     with mock.patch.dict(os.environ, {"PL_FAULT_TOLERANT_TRAINING": use_fault_tolerant}):
-        model = TestModel()
+        model = MyModel()
         model.training_epoch_end = None
         trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, limit_train_batches=1, callbacks=Check())
         trainer.fit(model)
@@ -863,7 +863,7 @@ class SequentialDictIterableDataset(SequentialIterableDataset):
         return {"data": torch.tensor([indices]).float()}
 
 
-class TestModel(LightningModule):
+class MyModel(LightningModule):
     def __init__(self, fail_on_step: int = -1):
         super().__init__()
         self.layer = torch.nn.Linear(1, 2)
@@ -888,7 +888,7 @@ def _run_training(trainer_kwargs, dataset_classes, fail_on_step: int = -1, ckpt_
         DataLoader(dataset_class(3, 1), batch_size=1, num_workers=0) for dataset_class in dataset_classes
     ]
     train_dataloader = train_dataloader[0] if len(train_dataloader) == 1 else train_dataloader
-    model = TestModel(fail_on_step=fail_on_step)
+    model = MyModel(fail_on_step=fail_on_step)
     trainer = Trainer(**trainer_kwargs)
     with suppress(CustomException):
         trainer.fit(model, train_dataloaders=train_dataloader, ckpt_path=ckpt_path)
@@ -976,7 +976,7 @@ def test_auto_restart_within_validation_loop(train_datasets, val_datasets, val_c
     stop_dataloader = n_val_dataloaders - 1
     stop_batch = 1
 
-    class ValidationLoopTestModel(LightningModule):
+    class ValidationLoopMyModel(LightningModule):
         def __init__(self, should_fail):
             super().__init__()
             self.layer = torch.nn.Linear(1, 2)
@@ -1010,7 +1010,7 @@ def test_auto_restart_within_validation_loop(train_datasets, val_datasets, val_c
         if not resume:
             seed_everything(42)
 
-        model = ValidationLoopTestModel(should_fail)
+        model = ValidationLoopMyModel(should_fail)
 
         ckpt_path = str(tmpdir / ".pl_auto_save.ckpt") if resume else None
         trainer = Trainer(
@@ -1036,7 +1036,7 @@ def test_auto_restart_within_validation_loop(train_datasets, val_datasets, val_c
         torch.testing.assert_allclose(total_val_batches[k], pre_fail_val_batches[k] + post_fail_val_batches[k])
 
 
-class TestAutoRestartModelUnderSignal(BoringModel):
+class AutoRestartModelUnderSignal(BoringModel):
     def __init__(self, should_signal: bool, failure_on_step: bool, failure_on_training: bool, on_last_batch: bool):
         super().__init__()
         self.should_signal = should_signal
@@ -1086,7 +1086,7 @@ def _fit_model(
     tmpdir, should_signal, val_check_interval, failure_on_step, failure_on_training, on_last_batch, status=None
 ):
     seed_everything(42)
-    model = TestAutoRestartModelUnderSignal(should_signal, failure_on_step, failure_on_training, on_last_batch)
+    model = AutoRestartModelUnderSignal(should_signal, failure_on_step, failure_on_training, on_last_batch)
 
     trainer_kwargs = dict(
         default_root_dir=tmpdir,
@@ -1521,7 +1521,7 @@ class RandomFaultTolerantSampler(RandomSampler):
 @pytest.mark.parametrize("val_check_interval", [0.5])
 @mock.patch.dict(os.environ, {"PL_FAULT_TOLERANT_TRAINING": "2"})
 def test_fault_tolerant_manual_mode(val_check_interval, train_dataset_cls, val_dataset_cls, tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, should_fail: bool = False):
             super().__init__()
             self.layer = torch.nn.Linear(1, 2)
@@ -1572,7 +1572,7 @@ def test_fault_tolerant_manual_mode(val_check_interval, train_dataset_cls, val_d
             return [optimizer], [lr_scheduler]
 
     seed_everything(42)
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, val_check_interval=val_check_interval)
     trainer.fit(model)
     total_batches = model.batches
@@ -1580,7 +1580,7 @@ def test_fault_tolerant_manual_mode(val_check_interval, train_dataset_cls, val_d
     trainer.train_dataloader = None
 
     seed_everything(42)
-    model = TestModel(should_fail=True)
+    model = MyModel(should_fail=True)
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, val_check_interval=val_check_interval)
     with suppress(CustomException):
         trainer.fit(model)
@@ -1592,7 +1592,7 @@ def test_fault_tolerant_manual_mode(val_check_interval, train_dataset_cls, val_d
     assert os.path.exists(checkpoint_path)
 
     seed_everything(42)
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, val_check_interval=val_check_interval)
     trainer.fit(model, ckpt_path=checkpoint_path)
     trainer.train_dataloader = None

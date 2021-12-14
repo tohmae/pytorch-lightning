@@ -886,7 +886,7 @@ def test_iterable_dataset_stop_iteration_at_epoch_beginning(yield_at_all):
         def __iter__(self):
             return iter(self.gen())
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def gen(self):
             # produce data in epoch 0, no data otherwise
             if yield_at_all and self.current_epoch == 0:
@@ -894,7 +894,7 @@ def test_iterable_dataset_stop_iteration_at_epoch_beginning(yield_at_all):
                 yield torch.rand(32)
                 yield torch.rand(32)
 
-    model = TestModel()
+    model = MyModel()
     train_dataloader = DataLoader(TestDataset(model.gen), batch_size=2)
     trainer = Trainer(
         default_root_dir=os.getcwd(),
@@ -981,7 +981,7 @@ def test_batch_size_smaller_than_num_gpus(tmpdir):
     num_gpus = 3
     batch_size = 3
 
-    class CurrentTestModel(EvalModelTemplate):
+    class CurrentMyModel(EvalModelTemplate):
         def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
             # batch norm doesn't work with batch size 1, we replace it
@@ -1006,7 +1006,7 @@ def test_batch_size_smaller_than_num_gpus(tmpdir):
 
     hparams = EvalModelTemplate.get_default_hparams()
     hparams["batch_size"] = batch_size
-    model = CurrentTestModel(**hparams)
+    model = CurrentMyModel(**hparams)
 
     trainer = Trainer(
         default_root_dir=tmpdir, max_epochs=1, limit_train_batches=0.1, limit_val_batches=0, gpus=num_gpus
@@ -1230,12 +1230,12 @@ def test_dataloaders_load_every_n_epochs_exception(tmpdir, n):
 
 
 def test_dataloaders_load_every_epoch_no_sanity_check(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def validation_step(self, batch, batch_idx):
             self.log("dummy_val", 5.0)
             return super().validation_step(batch, batch_idx)
 
-    model = TestModel()
+    model = MyModel()
 
     # This callback tests that the evaluation metrics are available by the time we run checkpointing
     checkpoint_callback = ModelCheckpoint(monitor="dummy_val", save_top_k=1)
@@ -1477,7 +1477,7 @@ def test_request_dataloader(tmpdir):
         def __next__(self):
             return next(self._iter)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.on_train_batch_start_called = False
@@ -1502,7 +1502,7 @@ def test_request_dataloader(tmpdir):
     trainer = Trainer(
         default_root_dir=tmpdir, limit_train_batches=2, limit_val_batches=2, limit_test_batches=2, max_epochs=1
     )
-    model = TestModel()
+    model = MyModel()
     trainer.fit(model)
     trainer.test(model)
     assert model.on_train_batch_start_called
@@ -1511,7 +1511,7 @@ def test_request_dataloader(tmpdir):
 
 @pytest.mark.parametrize("num_loaders", [1, 2])
 def test_multiple_dataloaders_with_random_sampler_overfit_batches(num_loaders, tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             for idx in range(num_loaders):
                 assert isinstance(self.trainer.train_dataloader.loaders[idx].loader.sampler, SequentialSampler)
@@ -1527,4 +1527,4 @@ def test_multiple_dataloaders_with_random_sampler_overfit_batches(num_loaders, t
         validation_step = None
 
     trainer = Trainer(default_root_dir=tmpdir, overfit_batches=1.0, max_epochs=1)
-    trainer.fit(TestModel())
+    trainer.fit(MyModel())

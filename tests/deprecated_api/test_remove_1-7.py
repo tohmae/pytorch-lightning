@@ -102,7 +102,7 @@ def test_v1_7_0_datamodule_dims_property(tmpdir):
 
 
 def test_v1_7_0_moved_get_progress_bar_dict(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def get_progress_bar_dict(self):
             items = super().get_progress_bar_dict()
             items.pop("v_num", None)
@@ -113,7 +113,7 @@ def test_v1_7_0_moved_get_progress_bar_dict(tmpdir):
         progress_bar_refresh_rate=None,
         fast_dev_run=True,
     )
-    test_model = TestModel()
+    test_model = MyModel()
     with pytest.deprecated_call(match=r"`LightningModule.get_progress_bar_dict` method was deprecated in v1.5"):
         trainer.fit(test_model)
     standard_metrics_postfix = trainer.progress_bar_callback.main_progress_bar.postfix
@@ -326,11 +326,11 @@ def test_v1_7_0_old_on_train_batch_end(tmpdir):
 
 
 def test_v1_7_0_deprecate_on_post_move_to_device(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_post_move_to_device(self):
             print("on_post_move_to_device")
 
-    model = TestModel()
+    model = MyModel()
 
     trainer = Trainer(default_root_dir=tmpdir, limit_train_batches=5, max_epochs=1)
 

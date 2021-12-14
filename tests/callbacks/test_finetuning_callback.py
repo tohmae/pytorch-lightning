@@ -25,7 +25,7 @@ from pytorch_lightning.callbacks.base import Callback
 from tests.helpers import BoringModel, RandomDataset
 
 
-class TestBackboneFinetuningCallback(BackboneFinetuning):
+class MyBackboneFinetuningCallback(BackboneFinetuning):
     def on_train_epoch_start(self, trainer, pl_module):
         super().on_train_epoch_start(trainer, pl_module)
         epoch = trainer.current_epoch
@@ -70,7 +70,7 @@ def test_finetuning_callback(tmpdir):
             return DataLoader(RandomDataset(32, 64), batch_size=2)
 
     model = FinetuningBoringModel()
-    callback = TestBackboneFinetuningCallback(unfreeze_backbone_at_epoch=3, verbose=False)
+    callback = MyBackboneFinetuningCallback(unfreeze_backbone_at_epoch=3, verbose=False)
 
     trainer = Trainer(limit_train_batches=4, default_root_dir=tmpdir, callbacks=[callback], max_epochs=8)
     trainer.fit(model)
@@ -78,7 +78,7 @@ def test_finetuning_callback(tmpdir):
     assert model.backbone.has_been_used
 
 
-class TestBackboneFinetuningWarningCallback(BackboneFinetuning):
+class MyBackboneFinetuningWarningCallback(BackboneFinetuning):
     def finetune_function(self, pl_module, epoch: int, optimizer, opt_idx: int):
         """Called when the epoch begins."""
 
@@ -121,7 +121,7 @@ def test_finetuning_callback_warning(tmpdir):
 
     model = FinetuningBoringModel()
     model.validation_step = None
-    callback = TestBackboneFinetuningWarningCallback(unfreeze_backbone_at_epoch=3, verbose=False)
+    callback = MyBackboneFinetuningWarningCallback(unfreeze_backbone_at_epoch=3, verbose=False)
 
     with pytest.warns(UserWarning, match="Did you init your optimizer in"):
         trainer = Trainer(limit_train_batches=1, default_root_dir=tmpdir, callbacks=[callback, chk], max_epochs=2)
@@ -271,7 +271,7 @@ def test_on_before_accelerator_backend_setup(tmpdir):
         def on_before_accelerator_backend_setup(self, trainer, pl_module):
             pl_module.on_before_accelerator_backend_setup_called = True
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.on_before_accelerator_backend_setup_called = False
@@ -280,7 +280,7 @@ def test_on_before_accelerator_backend_setup(tmpdir):
             assert self.on_before_accelerator_backend_setup_called
             return super().configure_optimizers()
 
-    model = TestModel()
+    model = MyModel()
     callback = TestCallback()
 
     trainer = Trainer(default_root_dir=tmpdir, callbacks=[callback], fast_dev_run=True)
@@ -338,7 +338,7 @@ def test_complex_nested_model():
     assert len(encoder_params) == 9
 
 
-class TestCallbacksRestoreCallback(BaseFinetuning):
+class CallbacksRestoreCallback(BaseFinetuning):
     def freeze_before_training(self, pl_module):
         self.freeze(pl_module.layer[:3])
 
@@ -364,7 +364,7 @@ def test_callbacks_restore(tmpdir):
     chk = ModelCheckpoint(dirpath=tmpdir, save_last=True)
 
     model = FinetuningBoringModel()
-    callback = TestCallbacksRestoreCallback()
+    callback = CallbacksRestoreCallback()
 
     trainer_kwargs = dict(
         default_root_dir=tmpdir, limit_train_batches=1, limit_val_batches=1, callbacks=[callback, chk], max_epochs=2

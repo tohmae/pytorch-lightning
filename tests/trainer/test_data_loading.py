@@ -45,7 +45,7 @@ def test_replace_distributed_sampler(tmpdir, mode):
     class CustomBatchSampler(BatchSampler):
         pass
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, numbers_test_dataloaders, mode):
             super().__init__()
             self._numbers_test_dataloaders = numbers_test_dataloaders
@@ -83,7 +83,7 @@ def test_replace_distributed_sampler(tmpdir, mode):
         def test_dataloader(self):
             return [self.create_dataset()] * self._numbers_test_dataloaders
 
-    model = TestModel(2, mode)
+    model = MyModel(2, mode)
     model.test_epoch_end = None
 
     trainer = Trainer(
@@ -92,7 +92,7 @@ def test_replace_distributed_sampler(tmpdir, mode):
     trainer.test(model)
 
 
-class TestSpawnBoringModel(BoringModel):
+class SpawnBoringModel(BoringModel):
     def __init__(self, num_workers):
         super().__init__()
         self.num_workers = num_workers
@@ -130,7 +130,7 @@ class TestSpawnBoringModel(BoringModel):
 def test_dataloader_warnings(tmpdir, num_workers):
     trainer = Trainer(default_root_dir=tmpdir, strategy="ddp_spawn", num_processes=2, fast_dev_run=4)
     assert trainer._accelerator_connector._distrib_type == _StrategyType.DDP_SPAWN
-    trainer.fit(TestSpawnBoringModel(num_workers))
+    trainer.fit(SpawnBoringModel(num_workers))
 
 
 def test_update_dataloader_raises():
@@ -272,7 +272,7 @@ def test_dataloader_reinit_for_subclass():
         trainer.prepare_dataloader(dataloader, shuffle=True)
 
 
-class LoaderTestModel(BoringModel):
+class LoaderMyModel(BoringModel):
     def training_step(self, batch, batch_idx):
         assert len(self.trainer.train_dataloader.loaders) == 10
         return super().training_step(batch, batch_idx)
@@ -295,7 +295,7 @@ def test_loader_detaching():
 
     loader = DataLoader(RandomDataset(32, 10), batch_size=1)
 
-    model = LoaderTestModel()
+    model = LoaderMyModel()
 
     assert len(model.train_dataloader()) == 64
     assert len(model.val_dataloader()) == 64
@@ -336,7 +336,7 @@ def test_pre_made_batches():
     """Check that loader works with pre-made batches."""
     loader = DataLoader(RandomDataset(32, 10), batch_size=None)
     trainer = Trainer(fast_dev_run=1)
-    trainer.predict(LoaderTestModel(), loader)
+    trainer.predict(LoaderMyModel(), loader)
 
 
 def test_error_raised_with_float_limited_eval_batches():

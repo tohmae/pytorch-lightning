@@ -62,7 +62,7 @@ def test_all_gather_ddp_spawn():
 
 @RunIf(min_gpus=2, skip_windows=True, standalone=True)
 def test_all_gather_collection(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
 
         training_epoch_end_called = False
 
@@ -93,7 +93,7 @@ def test_all_gather_collection(tmpdir):
 
     seed_everything(42)
 
-    model = TestModel()
+    model = MyModel()
 
     limit_train_batches = 8
     trainer = Trainer(
@@ -113,7 +113,7 @@ def test_all_gather_collection(tmpdir):
 
 @RunIf(min_gpus=2, skip_windows=True, standalone=True)
 def test_all_gather_sync_grads(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
 
         training_step_called = False
 
@@ -127,7 +127,7 @@ def test_all_gather_sync_grads(tmpdir):
 
             return loss
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True, gpus=2, strategy="ddp")
     trainer.fit(model)
     assert model.training_step_called

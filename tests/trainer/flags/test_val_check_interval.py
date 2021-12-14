@@ -20,7 +20,7 @@ from tests.helpers import BoringModel
 @pytest.mark.parametrize("max_epochs", [1, 2, 3])
 @pytest.mark.parametrize("denominator", [1, 3, 4])
 def test_val_check_interval(tmpdir, max_epochs, denominator):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.train_epoch_calls = 0
@@ -33,7 +33,7 @@ def test_val_check_interval(tmpdir, max_epochs, denominator):
             if not self.trainer.sanity_checking:
                 self.val_epoch_calls += 1
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(max_epochs=max_epochs, val_check_interval=1 / denominator, logger=False)
     trainer.fit(model)
 

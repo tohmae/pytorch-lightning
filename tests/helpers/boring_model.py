@@ -76,13 +76,13 @@ class BoringModel(LightningModule):
         - subclass
         - modify the behavior for what you want
 
-        class TestModel(BaseTestModel):
+        class MyModel(BaseMyModel):
             def training_step(...):
                 # do your own thing
 
         or:
 
-        model = BaseTestModel()
+        model = BaseMyModel()
         model.training_epoch_end = None
         """
         super().__init__()

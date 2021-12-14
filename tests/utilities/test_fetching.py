@@ -223,7 +223,7 @@ def test_trainer_num_prefetch_batches(tmpdir):
 @pytest.mark.parametrize("automatic_optimization", [False, True])
 @RunIf(min_torch="1.8.0")
 def test_fetching_dataloader_iter(automatic_optimization, tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, *args, automatic_optimization: bool = False, **kwargs):
             super().__init__(*args, **kwargs)
             self.automatic_optimization = automatic_optimization
@@ -258,7 +258,7 @@ def test_fetching_dataloader_iter(automatic_optimization, tmpdir):
             assert self.trainer._data_connector.train_data_fetcher.fetched == 64
             assert self.count == 64
 
-    model = TestModel(automatic_optimization=automatic_optimization)
+    model = MyModel(automatic_optimization=automatic_optimization)
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=1)
     trainer.fit(model)
 
@@ -326,7 +326,7 @@ def test_stop_iteration(trigger_stop_iteration, tmpdir):
     `dataloader_iter`"""
     EXPECT_NUM_BATCHES_PROCESSED = 2
 
-    class TestModel(AsyncBoringModel):
+    class MyModel(AsyncBoringModel):
         def __init__(self, trigger_stop_iteration) -> None:
             super().__init__()
             self.trigger_stop_iteration = trigger_stop_iteration
@@ -343,7 +343,7 @@ def test_stop_iteration(trigger_stop_iteration, tmpdir):
             return DataLoader(RandomDataset(BATCH_SIZE, EXPECT_NUM_BATCHES_PROCESSED))
 
     trainer = Trainer(max_epochs=1, default_root_dir=tmpdir)
-    m = TestModel(trigger_stop_iteration)
+    m = MyModel(trigger_stop_iteration)
     trainer.fit(m)
     expected = EXPECT_NUM_BATCHES_PROCESSED
     if trigger_stop_iteration:
@@ -426,7 +426,7 @@ def test_transfer_hooks_with_unpacking(tmpdir):
             self.count_called_on_after_batch_transfer += 1
             return super().on_after_batch_transfer(batch, dataloader_idx)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             x, _ = batch
             return super().training_step(x, batch_idx)
@@ -437,7 +437,7 @@ def test_transfer_hooks_with_unpacking(tmpdir):
 
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, num_sanity_val_steps=0)
     dm = BoringDataModule()
-    trainer.fit(TestModel(), datamodule=dm)
+    trainer.fit(MyModel(), datamodule=dm)
     assert dm.count_called_on_before_batch_transfer == 4
     assert dm.count_called_transfer_batch_to_device == 4
     assert dm.count_called_on_after_batch_transfer == 4

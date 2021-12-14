@@ -17,7 +17,7 @@ from pytorch_lightning import Trainer
 from tests.helpers.boring_model import BoringModel
 
 
-class TestModel(BoringModel):
+class MyModel(BoringModel):
     def training_step(self, batch, batch_idx):
         acc = self.step(batch[0])
         return acc
@@ -26,7 +26,7 @@ class TestModel(BoringModel):
 def test_no_depre_without_epoch_end(tmpdir):
     """Tests that only training_step can be used."""
 
-    model = TestModel()
+    model = MyModel()
     model.validation_epoch_end = None
 
     trainer = Trainer(

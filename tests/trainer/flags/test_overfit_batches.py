@@ -52,13 +52,13 @@ def test_overfit_batches_raises_warning_in_case_of_sequential_sampler(tmpdir):
         def __len__(self):
             return len(self.data_source)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def train_dataloader(self):
             dataset = RandomDataset(32, 64)
             sampler = NonSequentialSampler(dataset)
             return torch.utils.data.DataLoader(dataset, sampler=sampler)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, overfit_batches=2)
 
     with pytest.warns(UserWarning, match="requested to overfit but enabled training dataloader shuffling"):

@@ -451,12 +451,12 @@ def test_register_record_function(tmpdir):
         on_trace_ready=None,
     )
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.layer = torch.nn.Sequential(torch.nn.Linear(1, 1), torch.nn.ReLU(), torch.nn.Linear(1, 1))
 
-    model = TestModel()
+    model = MyModel()
     input = torch.rand((1, 1))
 
     if use_cuda:

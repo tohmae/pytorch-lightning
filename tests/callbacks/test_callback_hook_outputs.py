@@ -31,7 +31,7 @@ def test_train_step_no_return(tmpdir, single_cb: bool):
         def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
             assert "x" in outputs
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_train_batch_end(self, outputs, batch, batch_idx: int) -> None:
             assert "loss" in outputs
 
@@ -44,7 +44,7 @@ def test_train_step_no_return(tmpdir, single_cb: bool):
         def training_epoch_end(self, outputs) -> None:
             assert len(outputs) == self.trainer.num_training_batches
 
-    model = TestModel()
+    model = MyModel()
 
     trainer = Trainer(
         callbacks=CB() if single_cb else [CB()],

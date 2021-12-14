@@ -76,7 +76,7 @@ def test_unsqueeze_scalar_tensor(inp, expected):
 def test_lightning_parallel_module_unsqueeze_scalar():
     """Test that LightningParallelModule takes care of un-squeezeing 0-dim tensors."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             output = super().training_step(batch, batch_idx)
             loss = output["loss"]
@@ -85,7 +85,7 @@ def test_lightning_parallel_module_unsqueeze_scalar():
             # PyTorch usually warns about 0-dim tensors returned in DP
             return {"loss": loss}
 
-    model = TestModel()
+    model = MyModel()
     trainer = MagicMock()
     trainer.state.stage = RunningStage.TRAINING
     trainer._accelerator_connector._init_deterministic(False)
@@ -119,14 +119,14 @@ def test_python_scalar_to_tensor(inp, expected):
 def test_lightning_parallel_module_python_scalar_conversion(device):
     """Test that LightningParallelModule can convert Python scalars to tensors."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             output = super().training_step(batch, batch_idx)
             # PyTorch DP does not support Python scalars, Lightning converts them to tensors
             output.update({"python scalar": 12.3})
             return output
 
-    model = TestModel().to(device)
+    model = MyModel().to(device)
     trainer = MagicMock()
     trainer.state.stage = RunningStage.TRAINING
     trainer._accelerator_connector._init_deterministic(False)

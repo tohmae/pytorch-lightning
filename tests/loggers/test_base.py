@@ -290,12 +290,12 @@ def test_np_sanitization():
 @pytest.mark.parametrize("logger", [True, False])
 @patch("pytorch_lightning.loggers.tensorboard.TensorBoardLogger.log_hyperparams")
 def test_log_hyperparams_being_called(log_hyperparams_mock, tmpdir, logger):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, param_one, param_two):
             super().__init__()
             self.save_hyperparameters(logger=logger)
 
-    model = TestModel("pytorch", "lightning")
+    model = MyModel("pytorch", "lightning")
     trainer = Trainer(
         default_root_dir=tmpdir, max_epochs=1, limit_train_batches=0.1, limit_val_batches=0.1, num_sanity_val_steps=0
     )
@@ -309,7 +309,7 @@ def test_log_hyperparams_being_called(log_hyperparams_mock, tmpdir, logger):
 
 @patch("pytorch_lightning.loggers.tensorboard.TensorBoardLogger.log_hyperparams")
 def test_log_hyperparams_key_collision(log_hyperparams_mock, tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, hparams: Dict[str, Any]) -> None:
             super().__init__()
             self.save_hyperparameters(hparams)
@@ -323,7 +323,7 @@ def test_log_hyperparams_key_collision(log_hyperparams_mock, tmpdir):
         ...
 
     same_params = {1: 1, "2": 2, "three": 3.0, "test": _Test(), "4": torch.tensor(4)}
-    model = TestModel(same_params)
+    model = MyModel(same_params)
     dm = TestDataModule(same_params)
 
     trainer = Trainer(
@@ -342,13 +342,13 @@ def test_log_hyperparams_key_collision(log_hyperparams_mock, tmpdir):
 
     obj_params = deepcopy(same_params)
     obj_params["test"] = _Test()
-    model = TestModel(same_params)
+    model = MyModel(same_params)
     dm = TestDataModule(obj_params)
     trainer.fit(model)
 
     diff_params = deepcopy(same_params)
     diff_params.update({1: 0, "test": _Test()})
-    model = TestModel(same_params)
+    model = MyModel(same_params)
     dm = TestDataModule(diff_params)
     trainer = Trainer(
         default_root_dir=tmpdir,
@@ -365,7 +365,7 @@ def test_log_hyperparams_key_collision(log_hyperparams_mock, tmpdir):
 
     tensor_params = deepcopy(same_params)
     tensor_params.update({"4": torch.tensor(3)})
-    model = TestModel(same_params)
+    model = MyModel(same_params)
     dm = TestDataModule(tensor_params)
     trainer = Trainer(
         default_root_dir=tmpdir,

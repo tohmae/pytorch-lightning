@@ -278,7 +278,7 @@ def test_lightning_cli_args_callbacks(tmpdir):
         dict(class_path="pytorch_lightning.callbacks.ModelCheckpoint", init_args=dict(monitor="NAME")),
     ]
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_fit_start(self):
             callback = [c for c in self.trainer.callbacks if isinstance(c, LearningRateMonitor)]
             assert len(callback) == 1
@@ -290,7 +290,7 @@ def test_lightning_cli_args_callbacks(tmpdir):
             self.trainer.ran_asserts = True
 
     with mock.patch("sys.argv", ["any.py", "fit", f"--trainer.callbacks={json.dumps(callbacks)}"]):
-        cli = LightningCLI(TestModel, trainer_defaults=dict(default_root_dir=str(tmpdir), fast_dev_run=True))
+        cli = LightningCLI(MyModel, trainer_defaults=dict(default_root_dir=str(tmpdir), fast_dev_run=True))
 
     assert cli.trainer.ran_asserts
 
@@ -318,14 +318,14 @@ def test_lightning_cli_configurable_callbacks(tmpdir, run):
 def test_lightning_cli_args_cluster_environments(tmpdir):
     plugins = [dict(class_path="pytorch_lightning.plugins.environments.SLURMEnvironment")]
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_fit_start(self):
             # Ensure SLURMEnvironment is set, instead of default LightningEnvironment
             assert isinstance(self.trainer._accelerator_connector._cluster_environment, SLURMEnvironment)
             self.trainer.ran_asserts = True
 
     with mock.patch("sys.argv", ["any.py", "fit", f"--trainer.plugins={json.dumps(plugins)}"]):
-        cli = LightningCLI(TestModel, trainer_defaults=dict(default_root_dir=str(tmpdir), fast_dev_run=True))
+        cli = LightningCLI(MyModel, trainer_defaults=dict(default_root_dir=str(tmpdir), fast_dev_run=True))
 
     assert cli.trainer.ran_asserts
 
@@ -572,7 +572,7 @@ def test_lightning_cli_link_arguments(tmpdir):
     assert cli.model.num_classes == 5
 
 
-class EarlyExitTestModel(BoringModel):
+class EarlyExitMyModel(BoringModel):
     def on_fit_start(self):
         raise MisconfigurationException("Error on fit start")
 
@@ -591,7 +591,7 @@ def test_cli_distributed_save_config_callback(tmpdir, logger, trainer_kwargs):
         MisconfigurationException, match=r"Error on fit start"
     ):
         LightningCLI(
-            EarlyExitTestModel,
+            EarlyExitMyModel,
             trainer_defaults={
                 "default_root_dir": str(tmpdir),
                 "logger": logger,
@@ -704,7 +704,7 @@ def test_lightning_cli_optimizers_and_lr_scheduler_with_link_to(use_registries, 
                 link_to="model.scheduler",
             )
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, optim1: dict, optim2: dict, scheduler: dict):
             super().__init__()
             self.optim1 = instantiate_class(self.parameters(), optim1)
@@ -726,7 +726,7 @@ def test_lightning_cli_optimizers_and_lr_scheduler_with_link_to(use_registries, 
         cli_args += ["--optim2.class_path=torch.optim.SGD", "--optim2.init_args.lr=0.01"]
 
     with mock.patch("sys.argv", ["any.py"] + cli_args):
-        cli = MyLightningCLI(TestModel)
+        cli = MyLightningCLI(MyModel)
 
     assert isinstance(cli.model.optim1, torch.optim.Adam)
     assert isinstance(cli.model.optim2, torch.optim.SGD)
@@ -891,7 +891,7 @@ def test_registries():
 
 
 @MODEL_REGISTRY
-class TestModel(BoringModel):
+class MyModel(BoringModel):
     def __init__(self, foo, bar=5):
         super().__init__()
         self.foo = foo
@@ -909,9 +909,9 @@ def test_lightning_cli_model_choices():
         assert isinstance(cli.model, BoringModel)
         run.assert_called_once_with(cli.model, ANY, ANY, ANY, ANY)
 
-    with mock.patch("sys.argv", ["any.py", "--model=TestModel", "--model.foo", "123"]):
+    with mock.patch("sys.argv", ["any.py", "--model=MyModel", "--model.foo", "123"]):
         cli = LightningCLI(run=False)
-        assert isinstance(cli.model, TestModel)
+        assert isinstance(cli.model, MyModel)
         assert cli.model.foo == 123
         assert cli.model.bar == 5
 
@@ -1167,7 +1167,7 @@ def test_optimizers_and_lr_schedulers_add_arguments_to_parser_implemented_reload
             parser.add_lr_scheduler_args(LR_SCHEDULER_REGISTRY.classes, link_to="model.sch_config")
             parser.add_argument("--something", type=str, nargs="+")
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, opt1_config: dict, opt2_config: dict, sch_config: dict):
             super().__init__()
             self.opt1_config = opt1_config
@@ -1201,7 +1201,7 @@ def test_optimizers_and_lr_schedulers_add_arguments_to_parser_implemented_reload
     # save config
     out = StringIO()
     with mock.patch("sys.argv", input + ["--print_config"]), redirect_stdout(out), pytest.raises(SystemExit):
-        TestLightningCLI(TestModel)
+        TestLightningCLI(MyModel)
 
     # validate yaml
     yaml_config = out.getvalue()
@@ -1217,7 +1217,7 @@ def test_optimizers_and_lr_schedulers_add_arguments_to_parser_implemented_reload
     yaml_config_file = tmpdir / "config.yaml"
     yaml_config_file.write_text(yaml_config, "utf-8")
     with mock.patch("sys.argv", base + [f"--config={yaml_config_file}"]):
-        cli = TestLightningCLI(TestModel)
+        cli = TestLightningCLI(MyModel)
 
     assert cli.model.opt1_config["class_path"] == "torch.optim.adam.Adam"
     assert cli.model.opt2_config["class_path"] == "torch.optim.asgd.ASGD"

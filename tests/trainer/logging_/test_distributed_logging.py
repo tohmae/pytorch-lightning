@@ -49,7 +49,7 @@ class AllRankLogger(LightningLoggerBase):
         pass
 
 
-class TestModel(BoringModel):
+class MyModel(BoringModel):
     log_name = "rank-{rank}"
 
     def on_train_start(self):
@@ -62,7 +62,7 @@ class TestModel(BoringModel):
 @RunIf(skip_windows=True, skip_49370=True)
 def test_all_rank_logging_ddp_cpu(tmpdir):
     """Check that all ranks can be logged from."""
-    model = TestModel()
+    model = MyModel()
     all_rank_logger = AllRankLogger()
     trainer = Trainer(
         strategy="ddp_spawn",
@@ -81,7 +81,7 @@ def test_all_rank_logging_ddp_cpu(tmpdir):
 @RunIf(min_gpus=2)
 def test_all_rank_logging_ddp_spawn(tmpdir):
     """Check that all ranks can be logged from."""
-    model = TestModel()
+    model = MyModel()
     all_rank_logger = AllRankLogger()
     model.training_epoch_end = None
     trainer = Trainer(

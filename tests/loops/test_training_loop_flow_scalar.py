@@ -28,7 +28,7 @@ from tests.helpers.utils import no_warning_call
 def test__training_step__flow_scalar(tmpdir):
     """Tests that only training_step can be used."""
 
-    class TestModel(DeterministicModel):
+    class MyModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -38,7 +38,7 @@ def test__training_step__flow_scalar(tmpdir):
         def backward(self, loss, optimizer, optimizer_idx):
             return LightningModule.backward(self, loss, optimizer, optimizer_idx)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -60,7 +60,7 @@ def test__training_step__flow_scalar(tmpdir):
 def test__training_step__tr_step_end__flow_scalar(tmpdir):
     """Tests that only training_step can be used."""
 
-    class TestModel(DeterministicModel):
+    class MyModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -77,7 +77,7 @@ def test__training_step__tr_step_end__flow_scalar(tmpdir):
         def backward(self, loss, optimizer, optimizer_idx):
             return LightningModule.backward(self, loss, optimizer, optimizer_idx)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -99,7 +99,7 @@ def test__training_step__tr_step_end__flow_scalar(tmpdir):
 def test__training_step__epoch_end__flow_scalar(tmpdir):
     """Tests that only training_step can be used."""
 
-    class TestModel(DeterministicModel):
+    class MyModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -122,7 +122,7 @@ def test__training_step__epoch_end__flow_scalar(tmpdir):
         def backward(self, loss, optimizer, optimizer_idx):
             return LightningModule.backward(self, loss, optimizer, optimizer_idx)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -165,7 +165,7 @@ def test__training_step__epoch_end__flow_scalar(tmpdir):
 def test__training_step__step_end__epoch_end__flow_scalar(tmpdir):
     """Checks train_step + training_step_end + training_epoch_end (all with scalar return from train_step)."""
 
-    class TestModel(DeterministicModel):
+    class MyModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -194,7 +194,7 @@ def test__training_step__step_end__epoch_end__flow_scalar(tmpdir):
         def backward(self, loss, optimizer, optimizer_idx):
             return LightningModule.backward(self, loss, optimizer, optimizer_idx)
 
-    model = TestModel()
+    model = MyModel()
     model.val_dataloader = None
 
     trainer = Trainer(
@@ -238,7 +238,7 @@ def test_train_step_no_return(tmpdir):
     """Tests that only training_step raises a warning when nothing is returned in case of
     automatic_optimization."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             self.training_step_called = True
             loss = self.step(batch[0])
@@ -253,7 +253,7 @@ def test_train_step_no_return(tmpdir):
         def validation_epoch_end(self, outputs):
             assert len(outputs) == 0, outputs
 
-    model = TestModel()
+    model = MyModel()
     trainer_args = dict(default_root_dir=tmpdir, fast_dev_run=2)
     trainer = Trainer(**trainer_args)
 
@@ -265,7 +265,7 @@ def test_train_step_no_return(tmpdir):
     assert model.training_step_called
     assert model.validation_step_called
 
-    model = TestModel()
+    model = MyModel()
     model.automatic_optimization = False
     trainer = Trainer(**trainer_args)
 
@@ -278,14 +278,14 @@ def test_train_step_no_return(tmpdir):
 def test_training_step_no_return_when_even(tmpdir):
     """Tests correctness when some training steps have been skipped."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             self.training_step_called = True
             loss = self.step(batch[0])
             self.log("a", loss, on_step=True, on_epoch=True)
             return loss if batch_idx % 2 else None
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         limit_train_batches=4,
@@ -313,7 +313,7 @@ def test_training_step_no_return_when_even(tmpdir):
 def test_training_step_none_batches(tmpdir):
     """Tests correctness when the train dataloader gives None for some steps."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.counter = 0
@@ -335,7 +335,7 @@ def test_training_step_none_batches(tmpdir):
             else:
                 assert outputs
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         limit_val_batches=1,

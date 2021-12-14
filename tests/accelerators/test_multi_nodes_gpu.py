@@ -36,7 +36,7 @@ def test_logging_sync_dist_true_ddp(tmpdir):
     """Tests to ensure that the sync_dist flag works with CPU (should just return the original value)"""
     fake_result = 1
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch[0])
             self.log("foo", torch.tensor(fake_result), on_step=False, on_epoch=True)
@@ -48,7 +48,7 @@ def test_logging_sync_dist_true_ddp(tmpdir):
             self.log("bar", torch.tensor(fake_result), on_step=False, on_epoch=True)
             return {"x": loss}
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         limit_train_batches=1,
@@ -72,7 +72,7 @@ def test_logging_sync_dist_true_ddp(tmpdir):
 def test__validation_step__log(tmpdir):
     """Tests that validation_step can log."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             acc = self.step(batch)
             acc = acc + batch_idx
@@ -91,7 +91,7 @@ def test__validation_step__log(tmpdir):
         def backward(self, loss, optimizer, optimizer_idx):
             return LightningModule.backward(self, loss, optimizer, optimizer_idx)
 
-    model = TestModel()
+    model = MyModel()
     model.validation_step_end = None
     model.validation_epoch_end = None
 

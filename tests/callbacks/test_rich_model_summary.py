@@ -46,12 +46,12 @@ def test_rich_summary_tuples(mock_table_add_row, mock_console):
     """Ensure that tuples are converted into string, and print is called correctly."""
     model_summary = RichModelSummary()
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         @property
         def example_input_array(self) -> Any:
             return torch.randn(4, 32)
 
-    model = TestModel()
+    model = MyModel()
     summary = summarize(model)
     summary_data = summary._get_summary_data()
 

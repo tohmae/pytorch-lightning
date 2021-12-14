@@ -26,7 +26,7 @@ from tests.helpers import BoringModel, RandomDataset
 from tests.helpers.runif import RunIf
 
 
-class AMPTestModel(BoringModel):
+class AMPMyModel(BoringModel):
     def _step(self, batch):
         self._assert_autocast_enabled()
         output = self(batch)
@@ -86,7 +86,7 @@ def test_amp_cpus(tmpdir, strategy, precision, num_processes):
         default_root_dir=tmpdir, num_processes=num_processes, max_epochs=1, strategy=strategy, precision=precision
     )
 
-    model = AMPTestModel()
+    model = AMPMyModel()
     trainer.fit(model)
     trainer.test(model)
     trainer.predict(model, DataLoader(RandomDataset(32, 64)))
@@ -104,7 +104,7 @@ def test_amp_gpus(tmpdir, strategy, precision, gpus):
 
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, gpus=gpus, strategy=strategy, precision=precision)
 
-    model = AMPTestModel()
+    model = AMPMyModel()
     trainer.fit(model)
     trainer.test(model)
     trainer.predict(model, DataLoader(RandomDataset(32, 64)))
@@ -129,7 +129,7 @@ def test_amp_gpu_ddp_slurm_managed(tmpdir):
     # simulate setting slurm flags
     tutils.set_random_main_port()
 
-    model = AMPTestModel()
+    model = AMPMyModel()
 
     # exp file to get meta
     logger = tutils.get_default_logger(tmpdir)

@@ -57,7 +57,7 @@ def test_default_checkpoint_freq(save_mock, tmpdir, epochs: int, val_check_inter
 )
 @pytest.mark.parametrize("save_last", (False, True))
 def test_top_k(save_mock, tmpdir, k: int, epochs: int, val_check_interval: float, expected: int, save_last: bool):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.last_coeff = 10.0
@@ -70,7 +70,7 @@ def test_top_k(save_mock, tmpdir, k: int, epochs: int, val_check_interval: float
             self.last_coeff *= 0.999
             return loss
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         callbacks=[callbacks.ModelCheckpoint(dirpath=tmpdir, monitor="my_loss", save_top_k=k, save_last=save_last)],
         default_root_dir=tmpdir,
@@ -90,7 +90,7 @@ def test_top_k(save_mock, tmpdir, k: int, epochs: int, val_check_interval: float
 @RunIf(standalone=True, min_gpus=2)
 @pytest.mark.parametrize(["k", "epochs", "val_check_interval", "expected"], [(1, 1, 1.0, 1), (2, 2, 0.3, 4)])
 def test_top_k_ddp(save_mock, tmpdir, k, epochs, val_check_interval, expected):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             local_rank = int(os.getenv("LOCAL_RANK"))
             self.log("my_loss", batch_idx * (1 + local_rank), on_epoch=True)
@@ -106,7 +106,7 @@ def test_top_k_ddp(save_mock, tmpdir, k, epochs, val_check_interval, expected):
             assert obj == [[str(self.global_rank)], (str(self.global_rank),), set(str(self.global_rank))]
             assert out == [["0"], ("0",), set("0")]
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         callbacks=[callbacks.ModelCheckpoint(dirpath=tmpdir, monitor="my_loss_step", save_top_k=k, mode="max")],
         default_root_dir=tmpdir,

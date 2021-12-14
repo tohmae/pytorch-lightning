@@ -31,7 +31,7 @@ def test_initialize_state():
 def test_trainer_fn_while_running(tmpdir, extra_params):
     trainer = Trainer(default_root_dir=tmpdir, **extra_params, auto_lr_find=True)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, expected_fn, expected_stage):
             super().__init__()
             self.expected_fn = expected_fn
@@ -58,19 +58,19 @@ def test_trainer_fn_while_running(tmpdir, extra_params):
             assert self.trainer.state.fn == self.expected_fn
             assert self.trainer.testing
 
-    model = TestModel(TrainerFn.TUNING, RunningStage.TRAINING)
+    model = MyModel(TrainerFn.TUNING, RunningStage.TRAINING)
     trainer.tune(model)
     assert trainer.state.finished
 
-    model = TestModel(TrainerFn.FITTING, RunningStage.TRAINING)
+    model = MyModel(TrainerFn.FITTING, RunningStage.TRAINING)
     trainer.fit(model)
     assert trainer.state.finished
 
-    model = TestModel(TrainerFn.VALIDATING, RunningStage.VALIDATING)
+    model = MyModel(TrainerFn.VALIDATING, RunningStage.VALIDATING)
     trainer.validate(model)
     assert trainer.state.finished
 
-    model = TestModel(TrainerFn.TESTING, RunningStage.TESTING)
+    model = MyModel(TrainerFn.TESTING, RunningStage.TESTING)
     trainer.test(model)
     assert trainer.state.finished
 

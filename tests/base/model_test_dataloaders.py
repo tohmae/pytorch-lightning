@@ -16,7 +16,7 @@ from abc import ABC, abstractmethod
 from tests.helpers.dataloaders import CustomInfDataloader, CustomNotImplementedErrorDataloader
 
 
-class TestDataloaderVariations(ABC):
+class DataloaderVariations(ABC):
     @abstractmethod
     def dataloader(self, *args, **kwargs):
         """placeholder."""

@@ -46,7 +46,7 @@ def test_optimizer_with_scheduling(tmpdir):
 def test_multi_optimizer_with_scheduling(tmpdir):
     """Verify that learning rate scheduling is working."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         init_lr = 5e-4
 
         def training_step(self, batch, batch_idx, optimizer_idx):
@@ -59,7 +59,7 @@ def test_multi_optimizer_with_scheduling(tmpdir):
             lr_scheduler2 = optim.lr_scheduler.StepLR(optimizer2, step_size=1)
             return [optimizer1, optimizer2], [lr_scheduler1, lr_scheduler2]
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, limit_val_batches=0.1, limit_train_batches=0.2)
     trainer.fit(model)
@@ -110,7 +110,7 @@ def test_onecyclelr_with_epoch_interval_warns():
 
 
 def test_reducelronplateau_scheduling(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             self.log("foo", batch_idx)
             return super().training_step(batch, batch_idx)
@@ -123,7 +123,7 @@ def test_reducelronplateau_scheduling(tmpdir):
                 "monitor": "foo",
             }
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True)
     trainer.fit(model)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
@@ -231,12 +231,12 @@ def test_none_optimizer(tmpdir):
 def test_configure_optimizer_from_dict(tmpdir):
     """Tests if `configure_optimizer` method could return a dictionary with `optimizer` field only."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             config = {"optimizer": optim.SGD(params=self.parameters(), lr=1e-03)}
             return config
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True)
     trainer.fit(model)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
@@ -313,7 +313,7 @@ def test_step_scheduling_for_multiple_optimizers_with_frequency(
 def test_init_optimizers_during_evaluation_and_prediction(tmpdir, fn):
     """Test that optimizers is an empty list during evaluation and prediction."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             optimizer1 = optim.Adam(self.parameters(), lr=0.1)
             optimizer2 = optim.Adam(self.parameters(), lr=0.1)
@@ -323,7 +323,7 @@ def test_init_optimizers_during_evaluation_and_prediction(tmpdir, fn):
 
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=2)
     train_fn = getattr(trainer, fn)
-    train_fn(TestModel(), datamodule=BoringDataModule(), ckpt_path=None)
+    train_fn(MyModel(), datamodule=BoringDataModule(), ckpt_path=None)
 
     assert len(trainer.lr_schedulers) == 0
     assert len(trainer.optimizers) == 0
@@ -340,7 +340,7 @@ def test_multiple_optimizers_callbacks(tmpdir):
         def on_train_epoch_start(self, trainer, pl_module):
             pass
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.layer_1 = torch.nn.Linear(32, 2)
@@ -362,7 +362,7 @@ def test_multiple_optimizers_callbacks(tmpdir):
             b = optim.RMSprop(self.layer_2.parameters(), 1e-2)
             return a, b
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
     trainer = Trainer(
         callbacks=[CB()],
@@ -521,7 +521,7 @@ def test_invalid_optimizer_dict_raises(tmpdir):
 def test_warn_invalid_scheduler_key_in_manual_optimization(tmpdir):
     """Test warning when invalid scheduler keys are provided in manual optimization."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -531,7 +531,7 @@ def test_warn_invalid_scheduler_key_in_manual_optimization(tmpdir):
             sch = optim.lr_scheduler.StepLR(opt, step_size=1)
             return [opt], [{"scheduler": sch, "interval": "epoch"}]
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True)
     with pytest.warns(RuntimeWarning, match="the keys will be ignored"):
         trainer.fit(model)
@@ -541,7 +541,7 @@ def test_warn_invalid_scheduler_key_in_manual_optimization(tmpdir):
 def test_optimizer_state_on_device(tmpdir):
     """Test that optimizers that create state initially at instantiation still end up with the state on the GPU."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             # Adagrad creates state tensors immediately, model is not yet on GPU.
             return optim.Adagrad(self.parameters())
@@ -551,7 +551,7 @@ def test_optimizer_state_on_device(tmpdir):
             _, state = next(iter(opt.state.items()))
             assert state["sum"].device == torch.device("cuda", self.local_rank) == self.device
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, gpus=2, strategy="ddp", fast_dev_run=True)
     trainer.fit(model)
 
@@ -589,7 +589,7 @@ def test_lr_scheduler_state_updated_before_saving(tmpdir, every_n_train_steps, e
         callbacks=[ModelCheckpoint(dirpath=tmpdir, every_n_train_steps=every_n_train_steps)],
     )
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             optimizer = torch.optim.SGD(self.parameters(), lr=lr)
             lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=gamma)
@@ -607,7 +607,7 @@ def test_lr_scheduler_state_updated_before_saving(tmpdir, every_n_train_steps, e
             assert lr_scheduler_config["_last_lr"] == [lr * gamma ** compare_to]
             self.on_save_checkpoint_called = True
 
-    model = TestModel()
+    model = MyModel()
     trainer.fit(model)
     assert model.on_save_checkpoint_called
 
@@ -625,7 +625,7 @@ def test_plateau_scheduler_lr_step_interval_updated_after_saving(tmpdir, save_on
         callbacks=[ModelCheckpoint(dirpath=tmpdir, save_on_train_epoch_end=save_on_train_epoch_end)],
     )
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx, optimizer_idx):
             self.log("foo", batch_idx)
             return super().training_step(batch, batch_idx)
@@ -651,7 +651,7 @@ def test_plateau_scheduler_lr_step_interval_updated_after_saving(tmpdir, save_on
 
             self.on_save_checkpoint_called = True
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
     trainer.fit(model)
     assert model.on_save_checkpoint_called

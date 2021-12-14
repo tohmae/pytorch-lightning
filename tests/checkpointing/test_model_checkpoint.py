@@ -1042,7 +1042,7 @@ def test_val_check_interval_checkpoint_files(tmpdir):
 def test_current_score(tmpdir):
     """Check that the current_score value is correct and was saved."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, *args):
             self.log("foo", (self.current_epoch + 1) / 10)
             return super().training_step(*args)
@@ -1058,7 +1058,7 @@ def test_current_score(tmpdir):
         enable_progress_bar=False,
         enable_model_summary=False,
     )
-    trainer.fit(TestModel())
+    trainer.fit(MyModel())
     assert model_checkpoint.current_score == 0.3
     ckpts = [torch.load(str(ckpt)) for ckpt in tmpdir.listdir()]
     ckpts = [
@@ -1075,7 +1075,7 @@ def test_current_score(tmpdir):
 def test_current_score_when_nan(tmpdir, mode: str):
     """Check that ModelCheckpoint handles NaN values correctly."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, *args):
             self.log("foo", float("nan"))
             return super().training_step(*args)
@@ -1091,7 +1091,7 @@ def test_current_score_when_nan(tmpdir, mode: str):
         enable_progress_bar=False,
         enable_model_summary=False,
     )
-    trainer.fit(TestModel())
+    trainer.fit(MyModel())
     expected = float("inf" if mode == "min" else "-inf")
     assert model_checkpoint.best_model_score == expected
     assert model_checkpoint.current_score == expected
@@ -1099,7 +1099,7 @@ def test_current_score_when_nan(tmpdir, mode: str):
 
 @pytest.mark.parametrize("use_omegaconf", [False, pytest.param(True, marks=RunIf(omegaconf=True))])
 def test_hparams_type(tmpdir, use_omegaconf):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, hparams):
             super().__init__()
             self.save_hyperparameters(hparams)
@@ -1117,7 +1117,7 @@ def test_hparams_type(tmpdir, use_omegaconf):
     )
     hp = {"test_hp_0": 1, "test_hp_1": 2}
     hp = OmegaConf.create(hp) if use_omegaconf else Namespace(**hp)
-    model = TestModel(hp)
+    model = MyModel(hp)
     trainer.fit(model)
     ckpt = trainer.checkpoint_connector.dump_checkpoint()
     if use_omegaconf:

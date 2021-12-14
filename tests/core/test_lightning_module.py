@@ -78,7 +78,7 @@ def test_property_logger(tmpdir):
 
 
 def test_params_groups_and_state_are_accessible(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx, optimizer_idx):
             output = self.layer(batch)
             loss = self.loss(batch, output)
@@ -108,7 +108,7 @@ def test_params_groups_and_state_are_accessible(tmpdir):
 
             optimizer.step(closure=optimizer_closure)
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
 
     trainer = Trainer(
@@ -119,7 +119,7 @@ def test_params_groups_and_state_are_accessible(tmpdir):
 
 
 def test_toggle_untoggle_2_optimizers_no_shared_parameters(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx, optimizer_idx=None):
             return super().training_step(batch, batch_idx)
 
@@ -174,7 +174,7 @@ def test_toggle_untoggle_2_optimizers_no_shared_parameters(tmpdir):
 
             optimizer.step(closure=closure)
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
 
     trainer = Trainer(
@@ -184,7 +184,7 @@ def test_toggle_untoggle_2_optimizers_no_shared_parameters(tmpdir):
 
 
 def test_toggle_untoggle_3_optimizers_shared_parameters(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.layer_1 = nn.Sequential(nn.Linear(32, 32), nn.ReLU(), nn.Linear(32, 32), nn.ReLU(), nn.Linear(32, 32))
@@ -275,7 +275,7 @@ def test_toggle_untoggle_3_optimizers_shared_parameters(tmpdir):
             optimizer_3 = SGD(self.combine_generators(self.layer_3.parameters(), self.layer_1.parameters()), lr=0.1)
             return [optimizer_1, optimizer_2, optimizer_3]
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
 
     trainer = Trainer(max_epochs=1, default_root_dir=tmpdir, limit_train_batches=8, accumulate_grad_batches=2)
@@ -338,7 +338,7 @@ def test_sharded_tensor_state_dict(tmpdir, single_process_pg):
 def test_lightning_module_configure_gradient_clipping(tmpdir):
     """Test custom gradient clipping inside `configure_gradient_clipping` hook."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
 
         has_validated_gradients = False
         custom_gradient_clip_val = 1e-2
@@ -351,7 +351,7 @@ def test_lightning_module_configure_gradient_clipping(tmpdir):
                 for p in pg["params"]:
                     p.grad.clamp_(min=0, max=self.custom_gradient_clip_val)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir, max_epochs=1, limit_train_batches=1, limit_val_batches=0, gradient_clip_val=1e-4
     )
@@ -369,13 +369,13 @@ def test_lightning_module_configure_gradient_clipping_different_argument_values(
     """Test that setting gradient clipping arguments in `Trainer` and cusotmizing gradient clipping inside
     `configure_gradient_clipping` with different values raises an exception."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         custom_gradient_clip_val = 1e-2
 
         def configure_gradient_clipping(self, optimizer, optimizer_idx, gradient_clip_val, gradient_clip_algorithm):
             self.clip_gradients(optimizer, gradient_clip_val=self.custom_gradient_clip_val)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir, max_epochs=1, limit_train_batches=2, limit_val_batches=0, gradient_clip_val=1e-4
     )
@@ -385,13 +385,13 @@ def test_lightning_module_configure_gradient_clipping_different_argument_values(
     ):
         trainer.fit(model)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         custom_gradient_clip_algorithm = "foo"
 
         def configure_gradient_clipping(self, optimizer, optimizer_idx, gradient_clip_val, gradient_clip_algorithm):
             self.clip_gradients(optimizer, gradient_clip_algorithm=self.custom_gradient_clip_algorithm)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         max_epochs=1,

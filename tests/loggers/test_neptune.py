@@ -319,7 +319,7 @@ class TestNeptuneLogger(unittest.TestCase):
         self.assertEqual(logger.save_dir, os.path.join(os.getcwd(), ".neptune"))
 
 
-class TestNeptuneLoggerDeprecatedUsages(unittest.TestCase):
+class NeptuneLoggerDeprecatedUsages(unittest.TestCase):
     @staticmethod
     def _assert_legacy_usage(callback, *args, **kwargs):
         with pytest.raises(ValueError):

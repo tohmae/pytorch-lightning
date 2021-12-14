@@ -489,7 +489,7 @@ def test_result_collection_reload_2_gpus(tmpdir):
 def test_metric_collections(tmpdir):
     """This test ensures the metric attribute is properly found even with complex nested metric structure."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.metrics_list = ModuleList([DummyMetric() for _ in range(2)])
@@ -541,7 +541,7 @@ def test_metric_collections(tmpdir):
             assert results["training_step.g"].meta.metric_attribute == "metrics_collection_dict_nested.a.0.b"
             assert results["training_step.h"].meta.metric_attribute == "metrics_collection_dict_nested.a.1"
 
-    model = TestModel()
+    model = MyModel()
 
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=2, limit_train_batches=2, limit_val_batches=0)
     trainer.fit(model)

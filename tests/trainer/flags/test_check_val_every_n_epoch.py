@@ -22,7 +22,7 @@ from tests.helpers import BoringModel
     [(1, 0, [0]), (4, 2, [0, 2, 0, 2]), (5, 2, [0, 2, 0, 2, 0])],
 )
 def test_check_val_every_n_epoch(tmpdir, max_epochs, expected_val_loop_calls, expected_val_batches):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         val_epoch_calls = 0
         val_batches = []
 
@@ -32,7 +32,7 @@ def test_check_val_every_n_epoch(tmpdir, max_epochs, expected_val_loop_calls, ex
         def on_validation_epoch_start(self) -> None:
             self.val_epoch_calls += 1
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         max_epochs=max_epochs,

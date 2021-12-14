@@ -27,13 +27,13 @@ from tests.helpers.runif import RunIf
 
 @pytest.mark.parametrize("max_steps", [1, 2, 3])
 def test_on_before_zero_grad_called(tmpdir, max_steps):
-    class CurrentTestModel(BoringModel):
+    class CurrentMyModel(BoringModel):
         on_before_zero_grad_called = 0
 
         def on_before_zero_grad(self, optimizer):
             self.on_before_zero_grad_called += 1
 
-    model = CurrentTestModel()
+    model = CurrentMyModel()
 
     trainer = Trainer(default_root_dir=tmpdir, max_steps=max_steps, max_epochs=2)
     assert 0 == model.on_before_zero_grad_called
@@ -124,7 +124,7 @@ def test_apply_batch_transfer_handler(model_getter_mock):
             self.samples = data[0]
             self.targets = data[1]
 
-    class CurrentTestModel(BoringModel):
+    class CurrentMyModel(BoringModel):
         rank = 0
         transfer_batch_to_device_hook_rank = None
         on_before_batch_transfer_hook_rank = None
@@ -153,7 +153,7 @@ def test_apply_batch_transfer_handler(model_getter_mock):
             batch.targets = batch.targets.to(device)
             return batch
 
-    model = CurrentTestModel()
+    model = CurrentMyModel()
     batch = CustomBatch((torch.zeros(5, 32), torch.ones(5, 1, dtype=torch.long)))
 
     trainer = Trainer(gpus=1)
@@ -185,7 +185,7 @@ def test_transfer_batch_hook_ddp(tmpdir):
     def collate_fn(batch):
         return CustomBatch(batch)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             assert batch.samples.device == self.device
             assert isinstance(batch_idx, int)
@@ -193,7 +193,7 @@ def test_transfer_batch_hook_ddp(tmpdir):
         def train_dataloader(self):
             return torch.utils.data.DataLoader(RandomDataset(32, 64), collate_fn=collate_fn)
 
-    model = TestModel()
+    model = MyModel()
     model.validation_step = None
     model.training_epoch_end = None
     trainer = Trainer(
@@ -454,7 +454,7 @@ def test_trainer_model_hook_system_fit(tmpdir, kwargs, automatic_optimization):
 def _run_trainer_model_hook_system_fit(kwargs, tmpdir, automatic_optimization):
     called = []
 
-    class TestModel(HookedModel):
+    class MyModel(HookedModel):
         def __init__(self, *args):
             super().__init__(*args)
             self.automatic_optimization = automatic_optimization
@@ -469,7 +469,7 @@ def _run_trainer_model_hook_system_fit(kwargs, tmpdir, automatic_optimization):
             opt.step(lambda: called.append({"name": "closure"}))
             return {"loss": loss}
 
-    model = TestModel(called)
+    model = MyModel(called)
     callback = HookedCallback(called)
     train_batches = 2
     val_batches = 2

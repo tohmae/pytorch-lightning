@@ -113,7 +113,7 @@ def test_eval_loop_config(tmpdir):
 
 @pytest.mark.parametrize("datamodule", [False, True])
 def test_trainer_predict_verify_config(tmpdir, datamodule):
-    class TestModel(LightningModule):
+    class MyModel(LightningModule):
         def __init__(self):
             super().__init__()
             self.layer = torch.nn.Linear(32, 2)
@@ -136,7 +136,7 @@ def test_trainer_predict_verify_config(tmpdir, datamodule):
     if datamodule:
         data = TestLightningDataModule(data)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir)
     results = trainer.predict(model, data)
 

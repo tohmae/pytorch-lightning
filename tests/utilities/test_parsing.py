@@ -44,25 +44,25 @@ def model_cases():
 
     TestHparamsDict = {"learning_rate": 2}
 
-    class TestModel1:  # test for namespace
+    class MyModel1:  # test for namespace
         learning_rate = 0
 
-    model1 = TestModel1()
+    model1 = MyModel1()
 
-    class TestModel2:  # test for hparams namespace
+    class MyModel2:  # test for hparams namespace
         hparams = TestHparamsNamespace()
 
-    model2 = TestModel2()
+    model2 = MyModel2()
 
-    class TestModel3:  # test for hparams dict
+    class MyModel3:  # test for hparams dict
         hparams = TestHparamsDict
 
-    model3 = TestModel3()
+    model3 = MyModel3()
 
-    class TestModel4:  # fail case
+    class MyModel4:  # fail case
         batch_size = 1
 
-    model4 = TestModel4()
+    model4 = MyModel4()
 
     class DataModule:
         batch_size = 8
@@ -70,24 +70,24 @@ def model_cases():
     class Trainer:
         datamodule = DataModule
 
-    class TestModel5:  # test for datamodule
+    class MyModel5:  # test for datamodule
         trainer = Trainer
 
-    model5 = TestModel5()
+    model5 = MyModel5()
 
-    class TestModel6:  # test for datamodule w/ hparams w/o attribute (should use datamodule)
+    class MyModel6:  # test for datamodule w/ hparams w/o attribute (should use datamodule)
         trainer = Trainer
         hparams = TestHparamsDict
 
-    model6 = TestModel6()
+    model6 = MyModel6()
 
     TestHparamsDict2 = {"batch_size": 2}
 
-    class TestModel7:  # test for datamodule w/ hparams w/ attribute (should use datamodule)
+    class MyModel7:  # test for datamodule w/ hparams w/ attribute (should use datamodule)
         trainer = Trainer
         hparams = TestHparamsDict2
 
-    model7 = TestModel7()
+    model7 = MyModel7()
 
     return model1, model2, model3, model4, model5, model6, model7
 

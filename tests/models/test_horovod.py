@@ -280,7 +280,7 @@ def test_result_reduce_horovod(tmpdir):
         path_root = os.path.abspath(os.path.join(path_here, "..", ".."))
         sys.path.insert(0, os.path.abspath(path_root))
 
-        class TestModel(BoringModel):
+        class MyModel(BoringModel):
             def training_step(self, batch, batch_idx):
                 self.training_step_called = True
 
@@ -297,7 +297,7 @@ def test_result_reduce_horovod(tmpdir):
             def training_epoch_end(self, outputs) -> None:
                 assert len(outputs) == 0
 
-        model = TestModel()
+        model = MyModel()
         model.val_dataloader = None
 
         trainer = Trainer(
@@ -367,7 +367,7 @@ def test_accuracy_metric_horovod():
 
 @RunIf(skip_windows=True, horovod=True)
 def test_horovod_multi_optimizer_with_scheduling_stepping(tmpdir):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx, optimizer_idx):
             return super().training_step(batch, batch_idx)
 
@@ -378,7 +378,7 @@ def test_horovod_multi_optimizer_with_scheduling_stepping(tmpdir):
             lr_scheduler2 = optim.lr_scheduler.StepLR(optimizer2, 1, gamma=0.1)
             return [optimizer1, optimizer2], [lr_scheduler1, lr_scheduler2]
 
-    model = TestModel()
+    model = MyModel()
     model.training_epoch_end = None
 
     num_workers = 8

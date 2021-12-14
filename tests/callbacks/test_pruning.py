@@ -29,7 +29,7 @@ from tests.helpers.boring_model import BoringModel
 from tests.helpers.runif import RunIf
 
 
-class TestModel(BoringModel):
+class MyModel(BoringModel):
     def __init__(self):
         super().__init__()
         self.layer = Sequential(
@@ -43,7 +43,7 @@ class TestModel(BoringModel):
         return super().training_step(batch, batch_idx)
 
 
-class TestPruningMethod(pytorch_prune.BasePruningMethod):
+class MyPruningMethod(pytorch_prune.BasePruningMethod):
     PRUNING_TYPE = "unstructured"
 
     def compute_mask(self, _, default_mask):
@@ -67,7 +67,7 @@ def train_with_pruning_callback(
     gpus=None,
     num_processes=1,
 ):
-    model = TestModel()
+    model = MyModel()
 
     # Weights are random. None is 0
     assert torch.all(model.layer.mlp_2.weight != 0)
@@ -141,7 +141,7 @@ def test_pruning_misconfiguration():
 @pytest.mark.parametrize("parameters_to_prune", [False, True])
 @pytest.mark.parametrize("use_global_unstructured", [False, True])
 @pytest.mark.parametrize(
-    "pruning_fn", ["l1_unstructured", "random_unstructured", "ln_structured", "random_structured", TestPruningMethod]
+    "pruning_fn", ["l1_unstructured", "random_unstructured", "ln_structured", "random_structured", MyPruningMethod]
 )
 @pytest.mark.parametrize("use_lottery_ticket_hypothesis", [False, True])
 def test_pruning_callback(
@@ -185,7 +185,7 @@ def test_pruning_callback_ddp_cpu(tmpdir):
 
 @pytest.mark.parametrize("resample_parameters", (False, True))
 def test_pruning_lth_callable(tmpdir, resample_parameters: bool):
-    model = TestModel()
+    model = MyModel()
 
     class ModelPruningTestCallback(ModelPruning):
         lth_calls = 0
@@ -224,7 +224,7 @@ def test_pruning_lth_callable(tmpdir, resample_parameters: bool):
 
 @pytest.mark.parametrize("make_pruning_permanent", (False, True))
 def test_multiple_pruning_callbacks(tmpdir, caplog, make_pruning_permanent: bool):
-    model = TestModel()
+    model = MyModel()
     pruning_kwargs = {
         "parameters_to_prune": [(model.layer.mlp_1, "weight"), (model.layer.mlp_3, "weight")],
         "verbose": 2,
@@ -293,7 +293,7 @@ def test_permanent_when_model_is_saved_multiple_times(
             if had_buffers:
                 assert hasattr(pl_module.layer.mlp_3, "weight_orig")
 
-    model = TestModel()
+    model = MyModel()
     pruning_callback = TestPruning(
         "random_unstructured",
         parameters_to_prune=[(model.layer.mlp_3, "weight")],

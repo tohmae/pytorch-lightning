@@ -189,7 +189,7 @@ def test_trainer_accumulate_grad_batches_with_grad_acc_callback(tmpdir):
 def test_gradient_accumulation_scheduling_last_batch(tmpdir, accumulate_grad_batches, limit_train_batches):
     """Verify optimizer.step() applied to last batch while grad accumulation."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def state_dict(self, *args, **kwargs):
             return deepcopy(super().state_dict(*args, **kwargs))
 
@@ -235,7 +235,7 @@ def test_gradient_accumulation_scheduling_last_batch(tmpdir, accumulate_grad_bat
             else:
                 assert self.check(self.start_state_dict, end_state_dict)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         accumulate_grad_batches=accumulate_grad_batches,
         max_epochs=2,
@@ -406,7 +406,7 @@ def test_fit_ckpt_path_epoch_restored(monkeypatch, tmpdir, tmpdir_server, url_ck
     # set $TORCH_HOME, which determines torch hub's cache path, to tmpdir
     monkeypatch.setenv("TORCH_HOME", str(tmpdir))
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         # Model that tracks epochs and batches seen
         num_epochs_end_seen = 0
         num_batches_seen = 0
@@ -421,7 +421,7 @@ def test_fit_ckpt_path_epoch_restored(monkeypatch, tmpdir, tmpdir_server, url_ck
         def on_load_checkpoint(self, _):
             self.num_on_load_checkpoint_called += 1
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         max_epochs=2,
         limit_train_batches=0.65,
@@ -448,7 +448,7 @@ def test_fit_ckpt_path_epoch_restored(monkeypatch, tmpdir, tmpdir_server, url_ck
         checkpoints = [f"http://{ip}:{port}/" + ckpt.name for ckpt in checkpoints]
 
     for ckpt in checkpoints:
-        next_model = TestModel()
+        next_model = MyModel()
         state = pl_load(ckpt)
 
         # Resume training
@@ -586,7 +586,7 @@ def test_trainer_min_steps_and_epochs(tmpdir):
 def test_trainer_min_steps_and_min_epochs_not_reached(tmpdir, caplog):
     """Test that min_epochs/min_steps in Trainer are enforced even if EarlyStopping is triggered."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         training_step_invoked = 0
 
         def training_step(self, batch, batch_idx):
@@ -597,7 +597,7 @@ def test_trainer_min_steps_and_min_epochs_not_reached(tmpdir, caplog):
             assert not self.trainer.should_stop
             return output
 
-    model = TestModel()
+    model = MyModel()
     early_stop = EarlyStopping(monitor="loss", patience=0, check_on_train_epoch_end=True)
     min_epochs = 5
     trainer = Trainer(
@@ -661,7 +661,7 @@ def test_benchmark_option(tmpdir):
 @pytest.mark.parametrize("save_top_k", (-1, 0, 1, 2))
 @pytest.mark.parametrize("fn", ("validate", "test", "predict"))
 def test_tested_checkpoint_path(tmpdir, ckpt_path, save_top_k, fn):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def validation_step(self, batch, batch_idx):
             self.log("foo", -float(batch_idx))
             return super().validation_step(batch, batch_idx)
@@ -672,7 +672,7 @@ def test_tested_checkpoint_path(tmpdir, ckpt_path, save_top_k, fn):
         def predict_step(self, batch, *_):
             return self(batch)
 
-    model = TestModel()
+    model = MyModel()
     model.test_epoch_end = None
     trainer = Trainer(
         max_epochs=2,
@@ -733,7 +733,7 @@ def test_tested_checkpoint_path(tmpdir, ckpt_path, save_top_k, fn):
 @pytest.mark.parametrize("enable_checkpointing", (False, True))
 @pytest.mark.parametrize("fn", ("validate", "test", "predict"))
 def test_tested_checkpoint_path_best(tmpdir, enable_checkpointing, fn):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def validation_step(self, batch, batch_idx):
             self.log("foo", -batch_idx)
             return super().validation_step(batch, batch_idx)
@@ -744,7 +744,7 @@ def test_tested_checkpoint_path_best(tmpdir, enable_checkpointing, fn):
         def predict_step(self, batch, *_):
             return self(batch)
 
-    model = TestModel()
+    model = MyModel()
     model.test_epoch_end = None
     trainer = Trainer(
         max_epochs=2,
@@ -1021,7 +1021,7 @@ def test_gradient_clipping_by_norm(tmpdir, precision):
         gradient_clip_val=0.05,
     )
 
-    class TestModel(ClassificationModel):
+    class MyModel(ClassificationModel):
         def configure_gradient_clipping(self, *args, **kwargs):
             super().configure_gradient_clipping(*args, **kwargs)
             # test that gradient is clipped correctly
@@ -1030,7 +1030,7 @@ def test_gradient_clipping_by_norm(tmpdir, precision):
             torch.testing.assert_allclose(grad_norm, torch.tensor(0.05))
             self.assertion_called = True
 
-    model = TestModel()
+    model = MyModel()
     trainer.fit(model, ClassifDataModule())
     assert model.assertion_called
 
@@ -1051,7 +1051,7 @@ def test_gradient_clipping_by_value(tmpdir, precision):
         gradient_clip_val=1e-10,
     )
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_gradient_clipping(self, *args, **kwargs):
             super().configure_gradient_clipping(*args, **kwargs)
             # test that gradient is clipped correctly
@@ -1061,7 +1061,7 @@ def test_gradient_clipping_by_value(tmpdir, precision):
             torch.testing.assert_allclose(grad_max.abs(), torch.tensor(1e-10))
             self.assertion_called = True
 
-    model = TestModel()
+    model = MyModel()
     trainer.fit(model)
     assert model.assertion_called
 
@@ -1332,12 +1332,12 @@ def test_trainer_setup_call(tmpdir, stage):
 @pytest.mark.parametrize("train_batches, max_steps, log_interval", [(10, 10, 1), (3, 10, 1), (3, 10, 5)])
 @patch("pytorch_lightning.loggers.tensorboard.TensorBoardLogger.log_metrics")
 def test_log_every_n_steps(log_metrics_mock, tmpdir, train_batches, max_steps, log_interval):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, *args, **kwargs):
             self.log("foo", -1.0)
             return super().training_step(*args, **kwargs)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         log_every_n_steps=log_interval,
@@ -1624,13 +1624,13 @@ def test_repeated_fit_calls_with_max_epochs_and_steps(tmpdir, max_steps, max_epo
 def test_trainer_access_in_configure_optimizers(tmpdir):
     """Verify that the configure optimizer function can reference the trainer."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             assert self.trainer is not None, "Expect to have access to the trainer within `configure_optimizers`"
 
     train_data = torch.utils.data.DataLoader(RandomDataset(32, 64))
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True)
     trainer.fit(model, train_data)
 
@@ -1639,7 +1639,7 @@ def test_trainer_access_in_configure_optimizers(tmpdir):
 def test_setup_hook_move_to_device_correctly(tmpdir):
     """Verify that if a user defines a layer in the setup hook function, this is moved to the correct device."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def setup(self, stage: str) -> None:
             self.new_layer = torch.nn.Linear(2, 2)
 
@@ -1654,7 +1654,7 @@ def test_setup_hook_move_to_device_correctly(tmpdir):
     train_data = torch.utils.data.DataLoader(RandomDataset(32, 64))
 
     # model
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True, gpus=1)
     trainer.fit(model, train_data)
 
@@ -1691,7 +1691,7 @@ def test_train_loop_system(tmpdir):
             called_methods.append("zero_grad")
             return super().zero_grad(*args, **kwargs)
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             return TestOptimizer(self.parameters(), lr=0.1)
 
@@ -1703,7 +1703,7 @@ def test_train_loop_system(tmpdir):
             called_methods.append("backward")
             return super().backward(*args, **kwargs)
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(**trainer_options)
 
     # No methods are called yet.
@@ -1914,7 +1914,7 @@ class CustomException(Exception):
 def test_ddp_terminate_when_deadlock_is_detected(tmpdir):
     """Test that DDP kills the remaining processes when only one rank is throwing an exception."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             if batch_idx == 1 and self.trainer.is_global_zero:
                 # rank 0: raises an exception
@@ -1922,7 +1922,7 @@ def test_ddp_terminate_when_deadlock_is_detected(tmpdir):
                 raise CustomException
             return super().training_step(batch, batch_idx)
 
-    model = TestModel()
+    model = MyModel()
 
     trainer = Trainer(
         default_root_dir=tmpdir, max_epochs=1, limit_train_batches=5, num_sanity_val_steps=0, gpus=2, strategy="ddp"
@@ -1937,7 +1937,7 @@ def test_ddp_terminate_when_deadlock_is_detected(tmpdir):
 def test_multiple_trainer_constant_memory_allocated(tmpdir):
     """This tests ensures calling the trainer several times reset the memory back to 0."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def training_step(self, batch, batch_idx):
             loss = super().training_step(batch, batch_idx)
             self.log("train_loss", loss["loss"])
@@ -1957,7 +1957,7 @@ def test_multiple_trainer_constant_memory_allocated(tmpdir):
 
     initial = current_memory()
 
-    model = TestModel()
+    model = MyModel()
     trainer_kwargs = dict(
         default_root_dir=tmpdir,
         fast_dev_run=True,

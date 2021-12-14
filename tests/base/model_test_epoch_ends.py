@@ -18,7 +18,7 @@ import torch
 from pytorch_lightning.utilities import _StrategyType
 
 
-class TestEpochEndVariations(ABC):
+class EpochEndVariations(ABC):
     def test_epoch_end(self, outputs):
         """Called at the end of test epoch to aggregate outputs.
 

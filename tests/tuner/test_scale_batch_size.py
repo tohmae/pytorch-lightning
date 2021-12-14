@@ -181,14 +181,14 @@ def test_auto_scale_batch_size_set_model_attribute(tmpdir, use_hparams):
 def test_auto_scale_batch_size_duplicate_attribute_warning(tmpdir):
     """Test for a warning when model.batch_size and model.hparams.batch_size both present."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self, batch_size=1):
             super().__init__()
             # now we have model.batch_size and model.hparams.batch_size
             self.batch_size = 1
             self.save_hyperparameters()
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, max_steps=1, max_epochs=1000, auto_scale_batch_size=True)
     expected_message = "Field `model.batch_size` and `model.hparams.batch_size` are mutually exclusive!"
     with pytest.warns(UserWarning, match=expected_message):
@@ -260,12 +260,12 @@ def test_scale_batch_size_no_trials(tmpdir):
 def test_scale_batch_size_fails_with_unavailable_mode(tmpdir):
     """Check the tuning raises error when called with mode that does not exist."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super().__init__()
             self.batch_size = 2
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(
         default_root_dir=tmpdir,
         max_epochs=1,

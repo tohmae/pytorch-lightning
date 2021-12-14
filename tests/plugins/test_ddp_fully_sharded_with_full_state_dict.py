@@ -38,7 +38,7 @@ def test_fsdp_with_sharded_amp(device_count_mock, mock_cuda_available, tmpdir):
     assert isinstance(trainer.training_type_plugin.precision_plugin, FullyShardedNativeMixedPrecisionPlugin)
 
 
-class TestFSDPModel(BoringModel):
+class FSDPModel(BoringModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.layer: Optional[torch.nn.Module] = None
@@ -93,7 +93,7 @@ class TestFSDPModel(BoringModel):
 def test_fully_sharded_plugin_checkpoint(tmpdir):
     """Test to ensure that checkpoint is saved correctly when using a single GPU, and all stages can be run."""
 
-    model = TestFSDPModel()
+    model = FSDPModel()
     trainer = Trainer(default_root_dir=tmpdir, gpus=1, strategy="fsdp", precision=16, max_epochs=1)
     _run_multiple_stages(trainer, model, os.path.join(tmpdir, "last.ckpt"))
 
@@ -102,13 +102,13 @@ def test_fully_sharded_plugin_checkpoint(tmpdir):
 def test_fully_sharded_plugin_checkpoint_multi_gpus(tmpdir):
     """Test to ensure that checkpoint is saved correctly when using multiple GPUs, and all stages can be run."""
 
-    model = TestFSDPModel()
+    model = FSDPModel()
     ck = ModelCheckpoint(save_last=True)
     trainer = Trainer(default_root_dir=tmpdir, gpus=2, strategy="fsdp", precision=16, max_epochs=1, callbacks=[ck])
     _run_multiple_stages(trainer, model)
 
 
-def _assert_save_equality(trainer, ckpt_path, cls=TestFSDPModel):
+def _assert_save_equality(trainer, ckpt_path, cls=FSDPModel):
     # Use FullySharded to get the state dict for the sake of comparison
     model_state_dict = trainer.training_type_plugin.lightning_module_state_dict()
 
@@ -127,7 +127,7 @@ def _run_multiple_stages(trainer, model, model_path: Optional[str] = None):
 
     trainer.save_checkpoint(model_path, weights_only=True)
 
-    _assert_save_equality(trainer, model_path, cls=TestFSDPModel)
+    _assert_save_equality(trainer, model_path, cls=FSDPModel)
 
     # Test entry point
     trainer.test(model)  # model is wrapped, will not call configure_shared_model

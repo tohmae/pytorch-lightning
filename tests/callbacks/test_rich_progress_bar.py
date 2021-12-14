@@ -49,7 +49,7 @@ def test_rich_progress_bar_refresh_rate_enabled():
 @mock.patch("pytorch_lightning.callbacks.progress.rich_progress.Progress.update")
 @pytest.mark.parametrize("dataset", [RandomDataset(32, 64), RandomIterableDataset(32, 64)])
 def test_rich_progress_bar(progress_update, tmpdir, dataset):
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def train_dataloader(self):
             return DataLoader(dataset=dataset)
 
@@ -62,7 +62,7 @@ def test_rich_progress_bar(progress_update, tmpdir, dataset):
         def predict_dataloader(self):
             return DataLoader(dataset=dataset)
 
-    model = TestModel()
+    model = MyModel()
 
     trainer = Trainer(
         default_root_dir=tmpdir,
@@ -123,11 +123,11 @@ def test_rich_progress_bar_custom_theme(tmpdir):
 def test_rich_progress_bar_keyboard_interrupt(tmpdir):
     """Test to ensure that when the user keyboard interrupts, we close the progress bar."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def on_train_start(self) -> None:
             raise KeyboardInterrupt
 
-    model = TestModel()
+    model = MyModel()
 
     with mock.patch(
         "pytorch_lightning.callbacks.progress.rich_progress.Progress.stop", autospec=True

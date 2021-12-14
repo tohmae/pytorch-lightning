@@ -29,11 +29,11 @@ def test_callbacks_configured_in_model(tmpdir):
     model_callback_mock = Mock(spec=Callback, model=Callback())
     trainer_callback_mock = Mock(spec=Callback, model=Callback())
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_callbacks(self):
             return [model_callback_mock]
 
-    model = TestModel()
+    model = MyModel()
     trainer_options = dict(
         default_root_dir=tmpdir, enable_checkpointing=False, fast_dev_run=True, enable_progress_bar=False
     )
@@ -81,11 +81,11 @@ def test_configure_callbacks_hook_multiple_calls(tmpdir):
     """Test that subsequent calls to `configure_callbacks` do not change the callbacks list."""
     model_callback_mock = Mock(spec=Callback, model=Callback())
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_callbacks(self):
             return [model_callback_mock]
 
-    model = TestModel()
+    model = MyModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True, enable_checkpointing=False)
 
     callbacks_before_fit = trainer.callbacks.copy()

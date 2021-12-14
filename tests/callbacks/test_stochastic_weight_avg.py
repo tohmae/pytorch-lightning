@@ -29,7 +29,7 @@ from tests.helpers.boring_model import BoringModel, RandomDataset, RandomIterabl
 from tests.helpers.runif import RunIf
 
 
-class SwaTestModel(BoringModel):
+class SwaMyModel(BoringModel):
     def __init__(self, batchnorm: bool = True, interval: str = "epoch", iterable_dataset: bool = False):
         super().__init__()
         layers = [nn.Linear(32, 32)]
@@ -111,7 +111,7 @@ class SwaTestCallback(StochasticWeightAveraging):
 def train_with_swa(
     tmpdir, batchnorm=True, strategy=None, gpus=None, num_processes=1, interval="epoch", iterable_dataset=False
 ):
-    model = SwaTestModel(batchnorm=batchnorm, interval=interval, iterable_dataset=iterable_dataset)
+    model = SwaMyModel(batchnorm=batchnorm, interval=interval, iterable_dataset=iterable_dataset)
     swa_start = 2
     max_epochs = 5
     swa_callback = SwaTestCallback(swa_epoch_start=swa_start, swa_lrs=0.1)
@@ -170,7 +170,7 @@ def test_swa_callback_scheduler_step(tmpdir, interval: str):
 
 
 def test_swa_warns(tmpdir, caplog):
-    model = SwaTestModel(interval="step")
+    model = SwaMyModel(interval="step")
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True, callbacks=StochasticWeightAveraging())
     with caplog.at_level(level=logging.INFO), pytest.warns(UserWarning, match="SWA is currently only supported"):
         trainer.fit(model)
@@ -193,12 +193,12 @@ def test_swa_raises():
 def test_trainer_and_stochastic_weight_avg(tmpdir, use_callbacks: bool, stochastic_weight_avg: bool):
     """Test to ensure SWA Callback is injected when `stochastic_weight_avg` is provided to the Trainer."""
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def configure_optimizers(self):
             optimizer = torch.optim.SGD(self.layer.parameters(), lr=0.1)
             return optimizer
 
-    model = TestModel()
+    model = MyModel()
     kwargs = {
         "default_root_dir": tmpdir,
         "callbacks": StochasticWeightAveraging(swa_lrs=1e-3) if use_callbacks else None,
@@ -245,7 +245,7 @@ def test_swa_deepcopy(tmpdir):
 def test_swa_multiple_lrs(tmpdir):
     swa_lrs = [0.123, 0.321]
 
-    class TestModel(BoringModel):
+    class MyModel(BoringModel):
         def __init__(self):
             super(BoringModel, self).__init__()
             self.layer1 = torch.nn.Linear(32, 32)
@@ -267,7 +267,7 @@ def test_swa_multiple_lrs(tmpdir):
             assert [pg["swa_lr"] for pg in optimizer.param_groups] == swa_lrs
             self.on_train_epoch_start_called = True
 
-    model = TestModel()
+    model = MyModel()
     swa_callback = StochasticWeightAveraging(swa_lrs=swa_lrs)
     trainer = Trainer(
         default_root_dir=tmpdir,
