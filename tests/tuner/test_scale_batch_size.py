@@ -92,7 +92,7 @@ def test_model_reset_correctly(tmpdir):
             torch.eq(before_state_dict[key], after_state_dict[key])
         ), "Model was not reset correctly after scaling batch size"
 
-    assert not any(f for f in os.listdir(tmpdir) if f.startswith("scale_batch_size_temp_model"))
+    assert not any(f for f in os.listdir(tmpdir) if f.startswith(".scale_batch_size_temp_model"))
 
 
 def test_trainer_reset_correctly(tmpdir):
@@ -105,18 +105,19 @@ def test_trainer_reset_correctly(tmpdir):
     trainer = Trainer(default_root_dir=tmpdir, max_epochs=1)
 
     changed_attributes = [
-        "callbacks",
-        "checkpoint_callback",
-        "current_epoch",
-        "limit_train_batches",
-        "logger",
-        "max_steps",
         "global_step",
+        "limit_val_batches",
+        "max_steps",
+        "logger",
+        "callbacks",
     ]
     expected = {ca: getattr(trainer, ca) for ca in changed_attributes}
-    trainer.tuner.scale_batch_size(model, max_trials=5)
+    expected_loop_state_dict = trainer.fit_loop.state_dict()
+    trainer.tuner.scale_batch_size(model, max_trials=64)
     actual = {ca: getattr(trainer, ca) for ca in changed_attributes}
+    actual_loop_state_dict = trainer.fit_loop.state_dict()
 
+    assert expected_loop_state_dict == actual_loop_state_dict
     assert actual == expected
 
 
