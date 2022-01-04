@@ -289,10 +289,9 @@ class Loop(ABC, Generic[T]):
         destination[prefix + "state_dict"] = self.on_save_checkpoint()
 
         # do not get the mode from `self.trainer` because it might not have been attached yet
-        ft_enabled = _FaultTolerantMode.detect_current_mode().is_enabled
         for k, v in self.__dict__.items():
             key = prefix + k
-            if ft_enabled and isinstance(v, BaseProgress):
+            if isinstance(v, BaseProgress):
                 destination[key] = v.state_dict()
             elif isinstance(v, Loop):
                 v.state_dict(destination, key + ".")
@@ -309,21 +308,30 @@ class Loop(ABC, Generic[T]):
         state_dict: Dict,
         prefix: str = "",
         metrics: Optional[Dict[str, Metric]] = None,
+        force_load_progress: bool = False,
     ) -> None:
         """Loads the state of this loop and all its children."""
-        self._load_from_state_dict(state_dict.copy(), prefix, metrics)
+        self._load_from_state_dict(state_dict.copy(), prefix, metrics, force_load_progress)
         for k, v in self.__dict__.items():
             if isinstance(v, Loop):
-                v.load_state_dict(state_dict.copy(), prefix + k + ".")
+                v.load_state_dict(state_dict.copy(), prefix + k + ".", force_load_progress=force_load_progress)
 
-    def _load_from_state_dict(self, state_dict: Dict, prefix: str, metrics: Optional[Dict[str, Metric]] = None) -> None:
+    def _load_from_state_dict(
+        self,
+        state_dict: Dict,
+        prefix: str,
+        metrics: Optional[Dict[str, Metric]] = None,
+        force_load_progress: bool = False,
+    ) -> None:
+        load_progress = _FaultTolerantMode.detect_current_mode().is_enabled or force_load_progress
+
         for k, v in self.__dict__.items():
             key = prefix + k
             if key not in state_dict:
                 # compatibility with old checkpoints
                 continue
 
-            if isinstance(v, BaseProgress):
+            if load_progress and isinstance(v, BaseProgress):
                 v.load_state_dict(state_dict[key])
             elif (
                 isinstance(v, _ResultCollection)
