@@ -275,7 +275,9 @@ class Loop(ABC, Generic[T]):
     def on_load_checkpoint(self, state_dict: Dict) -> None:
         """Called when loading a model checkpoint, use to reload loop state."""
 
-    def state_dict(self, destination: Optional[Dict] = None, prefix: str = "") -> Dict:
+    def state_dict(
+        self, destination: Optional[Dict] = None, prefix: str = "", force_save_progress: bool = False
+    ) -> Dict:
         """The state dict is determined by the state and progress of this loop and all its children.
 
         Args:
@@ -289,12 +291,14 @@ class Loop(ABC, Generic[T]):
         destination[prefix + "state_dict"] = self.on_save_checkpoint()
 
         # do not get the mode from `self.trainer` because it might not have been attached yet
+        save_progress = _FaultTolerantMode.detect_current_mode().is_enabled or force_save_progress
+
         for k, v in self.__dict__.items():
             key = prefix + k
-            if isinstance(v, BaseProgress):
+            if save_progress and isinstance(v, BaseProgress):
                 destination[key] = v.state_dict()
             elif isinstance(v, Loop):
-                v.state_dict(destination, key + ".")
+                v.state_dict(destination, key + ".", force_save_progress=force_save_progress)
             elif isinstance(v, _ResultCollection):
                 # sync / unsync metrics
                 v.sync()
@@ -303,35 +307,26 @@ class Loop(ABC, Generic[T]):
 
         return destination
 
-    def load_state_dict(
-        self,
-        state_dict: Dict,
-        prefix: str = "",
-        metrics: Optional[Dict[str, Metric]] = None,
-        force_load_progress: bool = False,
-    ) -> None:
+    def load_state_dict(self, state_dict: Dict, prefix: str = "", metrics: Optional[Dict[str, Metric]] = None) -> None:
         """Loads the state of this loop and all its children."""
-        self._load_from_state_dict(state_dict.copy(), prefix, metrics, force_load_progress)
+        self._load_from_state_dict(state_dict.copy(), prefix, metrics)
         for k, v in self.__dict__.items():
             if isinstance(v, Loop):
-                v.load_state_dict(state_dict.copy(), prefix + k + ".", force_load_progress=force_load_progress)
+                v.load_state_dict(state_dict.copy(), prefix + k + ".")
 
     def _load_from_state_dict(
         self,
         state_dict: Dict,
         prefix: str,
         metrics: Optional[Dict[str, Metric]] = None,
-        force_load_progress: bool = False,
     ) -> None:
-        load_progress = _FaultTolerantMode.detect_current_mode().is_enabled or force_load_progress
-
         for k, v in self.__dict__.items():
             key = prefix + k
             if key not in state_dict:
                 # compatibility with old checkpoints
                 continue
 
-            if load_progress and isinstance(v, BaseProgress):
+            if isinstance(v, BaseProgress):
                 v.load_state_dict(state_dict[key])
             elif (
                 isinstance(v, _ResultCollection)
