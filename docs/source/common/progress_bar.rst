@@ -123,7 +123,7 @@ You can customize the components used within :class:`~pytorch_lightning.callback
 
     progress_bar = CustomRichProgressBar()
 
-If you wish a new progress bar to be displayed at the end of every epoch, you could enable
+If you wish for a new progress bar to be displayed at the end of every epoch, you should enable
 :paramref:`~pytorch_lightning.callbacks.RichProgressBar.leave` by passing ``True``
 
 .. code-block:: python
