@@ -26,7 +26,7 @@ Supported Progress Bars
 TQDMProgressBar
 ---------------
 
-It uses the `tqdm <https://github.com/tqdm/tqdm>`_ library internally and is the default progress bar used by Lightning.
+The :class:`~pytorch_lightning.callbacks.TQDMProgressBar` uses the `tqdm <https://github.com/tqdm/tqdm>`_ library internally and is the default progress bar used by Lightning.
 It prints to ``stdout`` and shows up to four different bars:
 
 - **sanity check progress:** the progress during the sanity check run
