@@ -1,3 +1,7 @@
+.. testsetup:: *
+
+    from pytorch_lightning.trainer.trainer import Trainer
+
 Progress Bar
 ============
 
@@ -75,7 +79,6 @@ Then configure the callback and pass it to the :class:`~pytorch_lightning.traine
 
 .. code-block:: python
 
-    from pytorch_lightning import Trainer
     from pytorch_lightning.callbacks import RichProgressBar
 
     trainer = Trainer(callbacks=RichProgressBar())
@@ -84,7 +87,6 @@ Customize the theme for your :class:`~pytorch_lightning.callbacks.RichProgressBa
 
 .. code-block:: python
 
-    from pytorch_lightning import Trainer
     from pytorch_lightning.callbacks import RichProgressBar
     from pytorch_lightning.callbacks.progress.rich_progress import RichProgressBarTheme
 
@@ -126,7 +128,6 @@ If you wish a new progress bar to be displayed at the end of every epoch, you co
 
 .. code-block:: python
 
-    from pytorch_lightning import Trainer
     from pytorch_lightning.callbacks import RichProgressBar
 
     trainer = Trainer(callbacks=RichProgressBar(leave=True))
