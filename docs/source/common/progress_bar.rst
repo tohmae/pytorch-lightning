@@ -69,7 +69,7 @@ RichProgressBar
 ---------------
 
 `Rich <https://github.com/Textualize/rich>`_ is a Python library for rich text and beautiful formatting in the terminal.
-To use :class:`~pytorch_lightning.callbacks.RichProgressBar` as your progress bar do the following. First, install the package:
+To use the :class:`~pytorch_lightning.callbacks.RichProgressBar` as your progress bar, first install the package:
 
 .. code-block:: bash
 
