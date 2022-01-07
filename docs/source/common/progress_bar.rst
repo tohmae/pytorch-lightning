@@ -83,7 +83,7 @@ Then configure the callback and pass it to the :class:`~pytorch_lightning.traine
 
     trainer = Trainer(callbacks=RichProgressBar())
 
-Customize the theme for your :class:`~pytorch_lightning.callbacks.RichProgressBar` by:
+Customize the theme for your :class:`~pytorch_lightning.callbacks.RichProgressBar` like this:
 
 .. code-block:: python
 
