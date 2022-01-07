@@ -106,7 +106,7 @@ Customize the theme for your :class:`~pytorch_lightning.callbacks.RichProgressBa
 
     trainer = Trainer(callbacks=progress_bar)
 
-You could customize the components used within :class:`~pytorch_lightning.callbacks.RichProgressBar` with ease by overriding the
+You can customize the components used within :class:`~pytorch_lightning.callbacks.RichProgressBar` with ease by overriding the
 :func:`~pytorch_lightning.callbacks.RichProgressBar.configure_columns` method.
 
 .. code-block:: python
