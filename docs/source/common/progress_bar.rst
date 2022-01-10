@@ -56,8 +56,7 @@ specific methods of the callback class and pass your custom implementation to th
             return bar
 
 
-    bar = LitProgressBar()
-    trainer = Trainer(callbacks=[bar])
+    trainer = Trainer(callbacks=[LitProgressBar()])
 
 .. seealso::
     - :class:`~pytorch_lightning.callbacks.TQDMProgressBar` docs.
