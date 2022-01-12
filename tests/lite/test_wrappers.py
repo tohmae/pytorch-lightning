@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from unittest.mock import ANY, Mock
+from unittest.mock import Mock
 
 import pytest
 import torch
@@ -140,14 +140,3 @@ def test_lite_optimizer_state_dict():
     lite_optimizer = _LiteOptimizer._wrap_optimizer(optimizer, strategy, 0)
     lite_optimizer.state_dict()
     strategy.optimizer_state.assert_called_with(optimizer)
-
-
-def test_lite_optimizer_steps():
-    """Test that the LiteOptimizer forwards the step() and zero_grad() calls to the wrapped optimizer."""
-    optimizer = Mock()
-    strategy = Mock()
-    lite_optimizer = _LiteOptimizer._wrap_optimizer(optimizer, strategy, 1)
-    lite_optimizer.step()
-    strategy.optimizer_step.assert_called_once()
-    print(strategy.optimizer_step.mock_calls)
-    strategy.optimizer_step.assert_called_with(optimizer, 1, ANY, model=strategy.model)

@@ -32,9 +32,6 @@ class _LiteOptimizer(LightningOptimizer):
     def state_dict(self) -> Dict[str, Tensor]:
         return self._strategy.optimizer_state(self.optimizer)
 
-    def step(self, *args: Any, **kwargs: Any) -> None:
-        return super().step(*args, model=self._strategy.model, **kwargs)
-
 
 class _LiteModule(DeviceDtypeModuleMixin):
     def __init__(self, module: nn.Module, precision_plugin: PrecisionPlugin) -> None:

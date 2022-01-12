@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from unittest.mock import DEFAULT, Mock, patch
+from unittest.mock import ANY, DEFAULT, Mock, patch
 
 import pytest
 import torch
@@ -30,6 +30,16 @@ def test_lightning_optimizer_wraps():
     lite_optimizer = LightningOptimizer(optimizer)
     assert lite_optimizer.optimizer is optimizer
     assert isinstance(lite_optimizer, optimizer_cls)
+
+
+def test_lite_optimizer_steps():
+    """Test that the LightningOptimizer forwards the step() call to the wrapped optimizer."""
+    optimizer = Mock()
+    strategy = Mock()
+    lite_optimizer = LightningOptimizer._wrap_optimizer(optimizer, strategy, 1)
+    lite_optimizer.step(foo=123)
+    strategy.optimizer_step.assert_called_once()
+    strategy.optimizer_step.assert_called_with(optimizer, 1, ANY, foo=123)
 
 
 @pytest.mark.parametrize("auto", (True, False))
