@@ -24,10 +24,6 @@ from pytorch_lightning.plugins import PrecisionPlugin
 from pytorch_lightning.utilities.apply_func import apply_to_collection, move_data_to_device
 
 
-def _do_nothing_closure() -> None:
-    return None
-
-
 class _LiteOptimizer(LightningOptimizer):
     def state_dict(self) -> Dict[str, Tensor]:
         return self._strategy.optimizer_state(self.optimizer)
