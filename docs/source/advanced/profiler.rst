@@ -209,7 +209,7 @@ Or::
 XLA Profiling
 -------------
 
-`XLA Profiler <https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.profiler.XLAProfiler.html#pytorch_lightning.profiler.XLAProfiler>`_ will help you debug and optimize training
+:class:`~pytorch_lightning.profiler.xla.XLAProfiler` will help you debug and optimize training
 workload performance for your models using Cloud TPU performance tools.
 
 ##############################
