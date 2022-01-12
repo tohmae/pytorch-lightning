@@ -58,7 +58,7 @@ class LightningOptimizer:
         return self._optimizer
 
     @classmethod
-    def _to_lightning_optimizer(
+    def _wrap_optimizer(
         cls, optimizer: Union[Optimizer, "LightningOptimizer"], strategy: "pl.strategies.Strategy", opt_idx: int
     ) -> "LightningOptimizer":
         if isinstance(optimizer, LightningOptimizer):
@@ -152,17 +152,11 @@ class LightningOptimizer:
         """
         if closure is None:
             closure = do_nothing_closure
-            profiler_action = "optimizer_step_without_closure"
         elif not callable(closure):
             raise MisconfigurationException("When `optimizer.step(closure)` is called, the closure should be callable")
-        else:
-            profiler_action = "optimizer_step_with_closure"
-        profiler_action += f"_{self._optimizer_idx}"
 
         assert self._strategy is not None
-        assert self._strategy.lightning_module is not None
-        with self._strategy.lightning_module.trainer.profiler.profile(profiler_action):
-            self._strategy.optimizer_step(self._optimizer, self._optimizer_idx, closure, **kwargs)
+        self._strategy.optimizer_step(self._optimizer, self._optimizer_idx, closure, **kwargs)
 
 
 def _init_optimizers_and_lr_schedulers(

@@ -93,7 +93,7 @@ class Strategy(ABC):
     def optimizers(self, optimizers: List[Optimizer]) -> None:
         self._optimizers = optimizers
         self._lightning_optimizers = {
-            idx: LightningOptimizer._to_lightning_optimizer(opt, self, idx) for idx, opt in enumerate(self.optimizers)
+            idx: LightningOptimizer._wrap_optimizer(opt, self, idx) for idx, opt in enumerate(self.optimizers)
         }
 
     def connect(self, model: Module) -> None:

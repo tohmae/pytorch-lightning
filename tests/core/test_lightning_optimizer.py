@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from unittest.mock import DEFAULT, patch
+from unittest.mock import DEFAULT, Mock, patch
 
 import pytest
 import torch
@@ -21,6 +21,15 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.core.optimizer import LightningOptimizer
 from pytorch_lightning.loops.optimization.optimizer_loop import Closure
 from tests.helpers.boring_model import BoringModel
+
+
+def test_lightning_optimizer_wraps():
+    """Test that the LightningOptimizer fully wraps the optimizer."""
+    optimizer_cls = torch.optim.SGD
+    optimizer = Mock(spec=optimizer_cls)
+    lite_optimizer = LightningOptimizer(optimizer)
+    assert lite_optimizer.optimizer is optimizer
+    assert isinstance(lite_optimizer, optimizer_cls)
 
 
 @pytest.mark.parametrize("auto", (True, False))
