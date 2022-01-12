@@ -32,7 +32,7 @@ def test_lightning_optimizer_wraps():
     assert isinstance(lite_optimizer, optimizer_cls)
 
 
-def test_lite_optimizer_steps():
+def test_lightning_optimizer_steps():
     """Test that the LightningOptimizer forwards the step() call to the wrapped optimizer."""
     optimizer = Mock()
     strategy = Mock()
