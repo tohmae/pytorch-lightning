@@ -225,12 +225,16 @@ class CheckpointConnector:
         if state_dict is not None and self.trainer.state.fn != TrainerFn.TUNING:
             if self.trainer.state.fn == TrainerFn.FITTING:
                 self.trainer.fit_loop.load_state_dict(state_dict["fit_loop"])
+                self.trainer.fit_loop.restarting = True
             elif self.trainer.state.fn == TrainerFn.VALIDATING:
                 self.trainer.validate_loop.load_state_dict(state_dict["validate_loop"])
+                self.trainer.validate_loop.restarting = True
             elif self.trainer.state.fn == TrainerFn.TESTING:
                 self.trainer.test_loop.load_state_dict(state_dict["test_loop"])
+                self.trainer.test_loop.restarting = True
             elif self.trainer.state.fn == TrainerFn.PREDICTING:
                 self.trainer.predict_loop.load_state_dict(state_dict["predict_loop"])
+                self.trainer.predict_loop.restarting = True
 
         if self.trainer.state.fn != TrainerFn.FITTING:
             return
