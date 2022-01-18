@@ -26,6 +26,7 @@ from pytorch_lightning.utilities.apply_func import apply_to_collection, move_dat
 
 class _LiteOptimizer(LightningOptimizer):
     def state_dict(self) -> Dict[str, Tensor]:
+        assert self._strategy is not None
         return self._strategy.optimizer_state(self.optimizer)
 
 
